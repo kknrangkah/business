@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@layer base {
+  :root, .dark {
+    /* Pure Bright Soothing Clinical Light Theme (#f8fafc / #f4f7f6) */
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
+    --primary: #059669;
+    --primary-foreground: #ffffff;
+    --secondary: #10b981;
+    --secondary-foreground: #ffffff;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --accent: #ecfdf5;
+    --accent-foreground: #065f46;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #10b981;
+    --radius: 0.875rem;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1, "cv11" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
+  }
+
+  /* Form & typography accessibility and eye comfort */
+  input, textarea, select, button {
+    font-family: inherit;
+  }
+
+  /* Eye-friendly comfortable typography */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  label {
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Custom Dark Purple Scrollbar for KingStream */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #0D061A;
+}
+::-webkit-scrollbar-thumb {
+  background: #2b1848;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6b21a8;
+}
+
+/* Print Styles for Medical Receipts & Records */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  @page {
+    margin: 1cm;
+    size: auto;
+  }
+}
