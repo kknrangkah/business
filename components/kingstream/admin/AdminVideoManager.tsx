@@ -53,6 +53,7 @@ export function AdminVideoManager() {
   );
   const [videoMode, setVideoMode] = useState<'url' | 'upload'>('url');
   const [videoUrl, setVideoUrl] = useState('');
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,14 +63,31 @@ export function AdminVideoManager() {
   const [previewVideo, setPreviewVideo] = useState<KingStreamVideo | null>(null);
   const [editingVideo, setEditingVideo] = useState<KingStreamVideo | null>(null);
 
-  // File Upload Handlers (FileReader to base64 Data URL)
-  const handleThumbnailFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // File Upload Handlers (Saves permanently to server /public/uploads + auto duration detection)
+  const handleThumbnailFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
       toast.error('File harus berupa gambar (JPG, PNG, WebP)');
       return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/kingstream/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setThumbnailUrl(data.url);
+        toast.success('Thumbnail berhasil diunggah ke server!');
+        return;
+      }
+    } catch (err) {
+      // Fallback to base64
     }
 
     const reader = new FileReader();
@@ -80,7 +98,7 @@ export function AdminVideoManager() {
     reader.readAsDataURL(file);
   };
 
-  const handleVideoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -89,14 +107,78 @@ export function AdminVideoManager() {
       return;
     }
 
-    // For local video preview in browser
     const objectUrl = URL.createObjectURL(file);
     setVideoUrl(objectUrl);
+
+    // Auto-detect exact duration & capture thumbnail frame
+    const tempVideo = document.createElement('video');
+    tempVideo.preload = 'metadata';
+    tempVideo.src = objectUrl;
+    tempVideo.muted = true;
+    tempVideo.onloadedmetadata = () => {
+      const sec = Math.floor(tempVideo.duration || 0);
+      if (sec > 0) {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        const formattedDur = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        setDuration(formattedDur);
+        toast.info(`Durasi video terdeteksi otomatis: ${formattedDur}`);
+      }
+      // Seek to 1 second to capture frame if default thumbnail is still used
+      tempVideo.currentTime = Math.min(1.5, (tempVideo.duration || 2) / 2);
+    };
+    tempVideo.onseeked = () => {
+      if (thumbnailUrl.includes('unsplash.com')) {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = tempVideo.videoWidth || 640;
+          canvas.height = tempVideo.videoHeight || 360;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            if (dataUrl && dataUrl.length > 100) {
+              setThumbnailUrl(dataUrl);
+            }
+          }
+        } catch (err) {
+          // ignore canvas error
+        }
+      }
+    };
+
+    // Upload permanently to server /public/uploads
+    setIsUploadingFile(true);
+    try {
+      toast.info(`Mengunggah video "${file.name}" ke server...`);
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/kingstream/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setVideoUrl(data.url);
+        toast.success(`Video "${file.name}" berhasil disimpan permanen!`);
+        return;
+      }
+    } catch (err) {
+      // Fallback to objectUrl
+    } finally {
+      setIsUploadingFile(false);
+    }
+
     toast.success(`Video lokal "${file.name}" siap diputar!`);
   };
 
   const handleSubmitUpload = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isUploadingFile) {
+      toast.warning('Mohon tunggu hingga proses unggah file video selesai...');
+      return;
+    }
 
     if (!title.trim()) {
       toast.error('Judul video wajib diisi!');
@@ -453,10 +535,11 @@ export function AdminVideoManager() {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold transition shadow-lg shadow-emerald-950 flex items-center gap-1.5 cursor-pointer"
+                disabled={isUploadingFile}
+                className="px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-lg shadow-emerald-950 flex items-center gap-1.5 cursor-pointer"
               >
                 <Check className="w-4 h-4" />
-                <span>Simpan & Tayangkan Sekarang</span>
+                <span>{isUploadingFile ? 'Sedang Mengunggah Video...' : 'Simpan & Tayangkan Sekarang'}</span>
               </button>
             </div>
           </form>
@@ -745,10 +828,23 @@ export function AdminVideoManager() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="aspect-video w-full bg-black flex items-center justify-center">
+            <div
+              onContextMenu={(e) => e.preventDefault()}
+              className="aspect-video w-full bg-black flex items-center justify-center select-none"
+            >
               {previewVideo.videoUrl &&
-              (previewVideo.videoUrl.endsWith('.mp4') || previewVideo.videoUrl.startsWith('blob:')) ? (
-                <video src={previewVideo.videoUrl} controls autoPlay className="w-full h-full object-contain" />
+              (previewVideo.videoUrl.endsWith('.mp4') ||
+                previewVideo.videoUrl.endsWith('.webm') ||
+                previewVideo.videoUrl.startsWith('/uploads/') ||
+                previewVideo.videoUrl.startsWith('blob:')) ? (
+                <video
+                  src={previewVideo.videoUrl}
+                  controls
+                  controlsList="nodownload"
+                  onContextMenu={(e) => e.preventDefault()}
+                  autoPlay
+                  className="w-full h-full object-contain"
+                />
               ) : (
                 <div className="text-center p-6">
                   <Play className="w-12 h-12 text-purple-400 mx-auto mb-2" />

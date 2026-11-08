@@ -31,13 +31,13 @@ export function KingStreamPromoBanner() {
         title={`Buka Iklan: ${adConfig.targetUrl || 'Promo'}`}
       >
         {/* Left Model / Banner Photo */}
-        <div className="relative w-[130px] sm:w-[150px] shrink-0 bg-[#0d161a] overflow-hidden">
+        <div className="relative w-[130px] sm:w-[150px] min-h-[88px] shrink-0 bg-[#0d161a] overflow-hidden">
           <Image
             src={adConfig.imageUrl || '/images/promo-model.png'}
             alt="Promo Model KingStream"
-            width={150}
-            height={90}
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+            fill
+            sizes="150px"
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
             priority
             unoptimized={adConfig.imageUrl?.startsWith('data:') || adConfig.imageUrl?.startsWith('http')}
           />

@@ -39,11 +39,65 @@ export function KingStreamProvider({ children }: { children: React.ReactNode }) 
   const [telegramConfig, setTelegramConfig] = useState<TelegramConfig>(DEFAULT_TELEGRAM_CONFIG);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadData = useCallback(() => {
-    setVideos(getStoredVideos());
-    setAdConfig(getStoredAdConfig());
-    setTelegramConfig(getStoredTelegramConfig());
+  // Sync data from both localStorage and server API
+  const loadData = useCallback(async () => {
+    // 1. Instant local read for zero delay
+    const localVideos = getStoredVideos();
+    const localAd = getStoredAdConfig();
+    const localTele = getStoredTelegramConfig();
+
+    setVideos(localVideos);
+    setAdConfig(localAd);
+    setTelegramConfig(localTele);
     setIsLoading(false);
+
+    // 2. Fetch from server API in background
+    try {
+      const [videoRes, adRes] = await Promise.all([
+        fetch('/api/kingstream/videos'),
+        fetch('/api/kingstream/ads'),
+      ]);
+
+      if (videoRes.ok) {
+        const videoData = await videoRes.json();
+        if (Array.isArray(videoData.videos) && videoData.videos.length > 0) {
+          // Deduplicate by ID
+          const seen = new Set();
+          const unique = videoData.videos.filter((v: KingStreamVideo) => {
+            if (seen.has(v.id)) return false;
+            seen.add(v.id);
+            return true;
+          });
+          setVideos(unique);
+          saveStoredVideos(unique);
+        } else if (localVideos.length > 0) {
+          // Sync local videos to server if server is empty
+          localVideos.forEach((v) => {
+            fetch('/api/kingstream/videos', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(v),
+            }).catch(() => {});
+          });
+        }
+      }
+
+      if (adRes.ok) {
+        const adData = await adRes.json();
+        if (adData.adConfig && Object.keys(adData.adConfig).length > 0) {
+          const mergedAd = { ...DEFAULT_AD_CONFIG, ...adData.adConfig };
+          setAdConfig(mergedAd);
+          saveStoredAdConfig(mergedAd);
+        }
+        if (adData.telegramConfig && Object.keys(adData.telegramConfig).length > 0) {
+          const mergedTele = { ...DEFAULT_TELEGRAM_CONFIG, ...adData.telegramConfig };
+          setTelegramConfig(mergedTele);
+          saveStoredTelegramConfig(mergedTele);
+        }
+      }
+    } catch (e) {
+      // Offline fallback: keep local storage
+    }
   }, []);
 
   useEffect(() => {
@@ -51,7 +105,9 @@ export function KingStreamProvider({ children }: { children: React.ReactNode }) 
 
     // Event listener for storage changes across windows and custom same-window events
     const handleStorageChange = () => {
-      loadData();
+      setVideos(getStoredVideos());
+      setAdConfig(getStoredAdConfig());
+      setTelegramConfig(getStoredTelegramConfig());
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -66,29 +122,65 @@ export function KingStreamProvider({ children }: { children: React.ReactNode }) 
   const handleAddVideo = (videoData: Omit<KingStreamVideo, 'id' | 'createdAt'>) => {
     const created = addStoredVideo(videoData);
     setVideos(getStoredVideos());
+
+    // Sync to server API
+    fetch('/api/kingstream/videos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(created),
+    }).catch(() => {});
+
     return created;
   };
 
   const handleUpdateVideo = (id: string, updates: Partial<KingStreamVideo>) => {
     const updated = updateStoredVideo(id, updates);
     setVideos(getStoredVideos());
+
+    // Sync to server API
+    fetch('/api/kingstream/videos', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updates }),
+    }).catch(() => {});
+
     return updated;
   };
 
   const handleDeleteVideo = (id: string) => {
     const result = deleteStoredVideo(id);
     setVideos(getStoredVideos());
+
+    // Sync to server API
+    fetch(`/api/kingstream/videos?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }).catch(() => {});
+
     return result;
   };
 
   const handleUpdateAdConfig = (config: AdBannerConfig) => {
     saveStoredAdConfig(config);
     setAdConfig(config);
+
+    // Sync to server API
+    fetch('/api/kingstream/ads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adConfig: config }),
+    }).catch(() => {});
   };
 
   const handleUpdateTelegramConfig = (config: TelegramConfig) => {
     saveStoredTelegramConfig(config);
     setTelegramConfig(config);
+
+    // Sync to server API
+    fetch('/api/kingstream/ads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegramConfig: config }),
+    }).catch(() => {});
   };
 
   return (
@@ -118,4 +210,3 @@ export function useKingStream() {
   }
   return context;
 }
-

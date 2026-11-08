@@ -956,6 +956,22 @@ export const RMEProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Initialize from LocalStorage or Fallback
   useEffect(() => {
     try {
+      const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+      const isKingStreamRoute =
+        pathname === '/' ||
+        pathname.startsWith('/landing') ||
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/watch');
+      const hasRmeBackendToken =
+        typeof window !== 'undefined' &&
+        Boolean(localStorage.getItem(STORAGE_AUTH_KEYS.ACCESS_TOKEN));
+
+      // Skip RME backend sync on KingStream routes or when no RME backend token is present
+      if (isKingStreamRoute || !hasRmeBackendToken) {
+        setIsLoaded(true);
+        return;
+      }
+
       // Force light theme and remove dark mode class
       setThemeState('light');
       document.documentElement.classList.remove('dark');
