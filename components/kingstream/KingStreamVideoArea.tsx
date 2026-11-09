@@ -114,7 +114,7 @@ export function KingStreamVideoArea({
   searchQuery,
   itemsPerPage,
 }: KingStreamVideoAreaProps) {
-  const { videos, updateVideo, adConfig } = useKingStream();
+  const { videos, recordVideoPlay, recordPlayClickOnly, adConfig } = useKingStream();
   const [selectedVideo, setSelectedVideo] = useState<KingStreamVideo | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
@@ -191,9 +191,15 @@ export function KingStreamVideoArea({
     // 1. Direct ke link iklan sponsor/promo saat play diklik
     triggerAdDirect();
 
-    // 2. Increment view count di storage
-    updateVideo(video.id, { views: (video.views || 0) + 1 });
-    setSelectedVideo({ ...video, views: (video.views || 0) + 1 });
+    // 2. Increment view count & play button click count secara real-time di server & storage
+    const nextViews = (Number(video.views) || 0) + 1;
+    const nextPlayClicks = (Number(video.playClicks) || 0) + 1;
+    recordVideoPlay(video.id);
+    setSelectedVideo({
+      ...video,
+      views: nextViews,
+      playClicks: nextPlayClicks,
+    });
     setCurrentTime(0);
 
     // Scroll to top of modal if opened
@@ -203,6 +209,11 @@ export function KingStreamVideoArea({
   };
 
   const handlePlayerOverlayPlay = () => {
+    if (selectedVideo) {
+      const nextPlayClicks = (Number(selectedVideo.playClicks) || 0) + 1;
+      recordPlayClickOnly(selectedVideo.id);
+      setSelectedVideo({ ...selectedVideo, playClicks: nextPlayClicks });
+    }
     triggerAdDirect();
   };
 

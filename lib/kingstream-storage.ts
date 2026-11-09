@@ -10,6 +10,7 @@ export interface KingStreamVideo {
   thumbnailUrl: string;
   duration: string;
   views: number;
+  playClicks?: number;
   badge?: string;
   createdAt: string;
   description?: string;
@@ -182,13 +183,18 @@ export function clearAdminSession(): void {
 }
 
 export function formatViews(count: number): string {
-  if (count >= 1000000) {
-    return `${(count / 1000000).toFixed(1)}M views`;
+  const safe = Number(count) || 0;
+  if (safe >= 1000000) {
+    return `${(safe / 1000000).toFixed(1)}M views`;
   }
-  if (count >= 1000) {
-    return `${(count / 1000).toFixed(0)}K views`;
+  if (safe >= 1000) {
+    return `${(safe / 1000).toFixed(0)}K views`;
   }
-  return `${count} views`;
+  return `${safe} views`;
+}
+
+export function formatNumber(count: number): string {
+  return (Number(count) || 0).toLocaleString('id-ID');
 }
 
 export function formatTimeAgo(isoString: string): string {

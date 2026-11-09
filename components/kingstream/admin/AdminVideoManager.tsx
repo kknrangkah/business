@@ -17,12 +17,14 @@ import {
   Link as LinkIcon,
   X,
   FileVideo,
+  MousePointerClick,
 } from 'lucide-react';
 import { useKingStream } from '../KingStreamContext';
 import {
   KingStreamVideo,
   VideoCategory,
   formatViews,
+  formatNumber,
   formatTimeAgo,
 } from '@/lib/kingstream-storage';
 import { toast } from 'sonner';
@@ -45,7 +47,7 @@ export function AdminVideoManager() {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<VideoCategory>('Indo Viral');
   const [duration, setDuration] = useState('12:45');
-  const [views, setViews] = useState(154000);
+  const [views, setViews] = useState(0);
   const [badge, setBadge] = useState('VIRAL');
   const [thumbnailMode, setThumbnailMode] = useState<'upload' | 'url'>('url');
   const [thumbnailUrl, setThumbnailUrl] = useState(
@@ -267,7 +269,8 @@ export function AdminVideoManager() {
       title: editingVideo.title,
       category: editingVideo.category,
       duration: editingVideo.duration,
-      views: Number(editingVideo.views),
+      views: Number(editingVideo.views) || 0,
+      playClicks: Number(editingVideo.playClicks) || 0,
       badge: editingVideo.badge,
       thumbnailUrl: editingVideo.thumbnailUrl,
       videoUrl: editingVideo.videoUrl,
@@ -288,6 +291,9 @@ export function AdminVideoManager() {
     return matchCat && matchSearch;
   });
 
+  const totalViews = videos.reduce((acc, curr) => acc + (Number(curr.views) || 0), 0);
+  const totalPlayClicks = videos.reduce((acc, curr) => acc + (Number(curr.playClicks) || 0), 0);
+
   return (
     <div className="space-y-6">
       {/* Action Header */}
@@ -297,9 +303,19 @@ export function AdminVideoManager() {
             <Film className="w-5 h-5 text-purple-400" />
             <span>Kelola & Upload Video</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Total {videos.length} video aktif di landing page KingStream
-          </p>
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-1.5">
+            <span>Total <strong className="text-white">{videos.length}</strong> video aktif</span>
+            <span>•</span>
+            <span className="inline-flex items-center gap-1 text-purple-300 font-semibold">
+              <MousePointerClick className="w-3.5 h-3.5 text-purple-400" />
+              <span>Total Klik Play: {formatNumber(totalPlayClicks)}</span>
+            </span>
+            <span>•</span>
+            <span className="inline-flex items-center gap-1 text-emerald-300 font-semibold">
+              <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Total Dilihat: {formatNumber(totalViews)} ({formatViews(totalViews)})</span>
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
@@ -609,7 +625,8 @@ export function AdminVideoManager() {
                   <th className="py-3 px-4">Video & Info</th>
                   <th className="py-3 px-4">Kategori</th>
                   <th className="py-3 px-4">Durasi</th>
-                  <th className="py-3 px-4">Tayangan (Views)</th>
+                  <th className="py-3 px-4">Klik Play Button</th>
+                  <th className="py-3 px-4">Total Dilihat (Views)</th>
                   <th className="py-3 px-4">Tanggal Upload</th>
                   <th className="py-3 px-4 text-right">Aksi</th>
                 </tr>
@@ -651,9 +668,20 @@ export function AdminVideoManager() {
                       {video.duration}
                     </td>
 
-                    {/* Views */}
-                    <td className="py-3 px-4 text-slate-300 font-medium">
-                      {formatViews(video.views)}
+                    {/* Klik Play Button */}
+                    <td className="py-3 px-4">
+                      <span className="inline-flex items-center gap-1.5 bg-purple-950/60 border border-purple-700/40 text-purple-200 px-2.5 py-1 rounded-lg font-semibold">
+                        <Play className="w-3 h-3 fill-current text-purple-400" />
+                        <span>{formatNumber(video.playClicks || 0)} klik</span>
+                      </span>
+                    </td>
+
+                    {/* Total Dilihat (Views) */}
+                    <td className="py-3 px-4">
+                      <span className="inline-flex items-center gap-1.5 bg-emerald-950/50 border border-emerald-700/40 text-emerald-300 px-2.5 py-1 rounded-lg font-semibold">
+                        <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{formatNumber(video.views || 0)} ({formatViews(video.views || 0)})</span>
+                      </span>
                     </td>
 
                     {/* Tanggal */}
@@ -762,7 +790,7 @@ export function AdminVideoManager() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Durasi</label>
                   <input
@@ -773,7 +801,18 @@ export function AdminVideoManager() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Views</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Klik Play</label>
+                  <input
+                    type="number"
+                    value={editingVideo.playClicks || 0}
+                    onChange={(e) =>
+                      setEditingVideo({ ...editingVideo, playClicks: Number(e.target.value) })
+                    }
+                    className="w-full bg-[#0D061A] border border-[#2b1848] rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Total Dilihat</label>
                   <input
                     type="number"
                     value={editingVideo.views}

@@ -29,7 +29,7 @@ interface WatchPageProps {
 
 function WatchContent({ videoId }: { videoId: string }) {
   const router = useRouter();
-  const { videos, updateVideo, adConfig } = useKingStream();
+  const { videos, recordVideoPlay, adConfig } = useKingStream();
   const [activeTab, setActiveTab] = useState<NavItem>('Home');
   const [currentTime, setCurrentTime] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -41,10 +41,10 @@ function WatchContent({ videoId }: { videoId: string }) {
     null;
 
   useEffect(() => {
-    if (currentVideo) {
-      updateVideo(currentVideo.id, { views: (currentVideo.views || 0) + 1 });
+    if (currentVideo?.id) {
+      recordVideoPlay(currentVideo.id);
     }
-  }, [currentVideo?.id]);
+  }, [currentVideo?.id, recordVideoPlay]);
 
   const triggerAdDirect = () => {
     if (adConfig && adConfig.directAdOnPlay !== false && adConfig.targetUrl) {

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+
 const DB_PATH = path.join(process.cwd(), 'data', 'kingstream-db.json');
 
 function readDb() {
@@ -34,10 +36,18 @@ function writeDb(data: any) {
 // GET /api/kingstream/videos
 export async function GET() {
   const db = readDb();
-  return NextResponse.json({
-    success: true,
-    videos: db.videos || [],
-  });
+  return NextResponse.json(
+    {
+      success: true,
+      videos: db.videos || [],
+      timestamp: Date.now(),
+    },
+    {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      },
+    }
+  );
 }
 
 // POST /api/kingstream/videos (Add new video or upsert)
@@ -53,6 +63,7 @@ export async function POST(req: Request) {
       id: videoId,
       createdAt: body.createdAt || new Date().toISOString(),
       views: Number(body.views) || 0,
+      playClicks: Number(body.playClicks) || 0,
     };
 
     // Deduplicate / Upsert by ID
@@ -71,6 +82,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       video: newVideo,
+      videos: updatedVideos,
     });
   } catch (error) {
     return NextResponse.json(
@@ -80,11 +92,11 @@ export async function POST(req: Request) {
   }
 }
 
-// PUT /api/kingstream/videos (Update video)
+// PUT /api/kingstream/videos (Update video or atomically increment views/playClicks)
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, ...updates } = body;
+    const { id, incrementViews, incrementPlayClicks, ...updates } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -104,13 +116,35 @@ export async function PUT(req: Request) {
       );
     }
 
-    videos[index] = { ...videos[index], ...updates };
+    const current = videos[index];
+    const currentViews = Number(current.views) || 0;
+    const currentPlayClicks = Number(current.playClicks) || 0;
+
+    const updatedVideo = {
+      ...current,
+      ...updates,
+      views:
+        typeof incrementViews === 'number'
+          ? currentViews + incrementViews
+          : updates.views !== undefined
+          ? Number(updates.views) || 0
+          : currentViews,
+      playClicks:
+        typeof incrementPlayClicks === 'number'
+          ? currentPlayClicks + incrementPlayClicks
+          : updates.playClicks !== undefined
+          ? Number(updates.playClicks) || 0
+          : currentPlayClicks,
+    };
+
+    videos[index] = updatedVideo;
     db.videos = videos;
     writeDb(db);
 
     return NextResponse.json({
       success: true,
-      video: videos[index],
+      video: updatedVideo,
+      videos,
     });
   } catch (error) {
     return NextResponse.json(
@@ -141,6 +175,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({
       success: true,
       message: 'Video berhasil dihapus',
+      videos,
     });
   } catch (error) {
     return NextResponse.json(
@@ -149,4 +184,3 @@ export async function DELETE(req: Request) {
     );
   }
 }
-
