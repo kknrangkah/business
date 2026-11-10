@@ -469,13 +469,18 @@ export function AdminAdsManager() {
               )}
 
               {itemImageMode === 'url' && (
-                <input
-                  type="url"
-                  value={itemImageUrl}
-                  onChange={(e) => setItemImageUrl(e.target.value)}
-                  placeholder="https://example.com/banner.jpg"
-                  className="w-full bg-[#130A24] border border-[#2b1848] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 outline-none"
-                />
+                <div className="space-y-1.5">
+                  <input
+                    type="url"
+                    value={itemImageUrl === '/images/promo-model.png' ? '' : itemImageUrl}
+                    onChange={(e) => setItemImageUrl(e.target.value || '/images/promo-model.png')}
+                    placeholder="https://example.com/gambar-banner.jpg (Direct link file JPG/PNG/WebP)"
+                    className="w-full bg-[#130A24] border border-[#2b1848] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 outline-none"
+                  />
+                  <p className="text-[11px] text-amber-400/90">
+                    *Pastikan link berakhiran .jpg / .png / .webp (bukan link halaman website biasa). Jika kosong atau tidak valid, otomatis memakai gambar model default.
+                  </p>
+                </div>
               )}
 
               {itemImageMode === 'default' && (
@@ -484,6 +489,27 @@ export function AdminAdsManager() {
                   <span>Menggunakan gambar model asli (/images/promo-model.png)</span>
                 </div>
               )}
+
+              {/* Live Mini Image Preview in Modal */}
+              <div className="mt-3 pt-3 border-t border-purple-900/30 flex items-center gap-3">
+                <img
+                  src={itemImageUrl || '/images/promo-model.png'}
+                  alt="Preview Gambar Banner"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.src.endsWith('/images/promo-model.png')) {
+                      target.src = '/images/promo-model.png';
+                    }
+                  }}
+                  className="w-20 h-12 rounded-lg object-cover border border-emerald-500/60 bg-black shrink-0"
+                />
+                <div className="text-[11px] text-slate-300">
+                  <span className="font-bold text-emerald-400 block">Pratinjau Gambar Banner:</span>
+                  <span className="text-slate-400">
+                    Jika gambar di samping tampil normal, maka gambar siap ditampilkan di banner.
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-purple-900/30">
@@ -553,6 +579,12 @@ export function AdminAdsManager() {
                 <img
                   src={item.imageUrl || '/images/promo-model.png'}
                   alt={item.title}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.src.endsWith('/images/promo-model.png')) {
+                      target.src = '/images/promo-model.png';
+                    }
+                  }}
                   className="w-16 h-10 rounded-lg object-cover border border-emerald-700/50 shrink-0 bg-black"
                 />
 
@@ -663,13 +695,16 @@ export function AdminAdsManager() {
           >
             {/* Left Model Photo */}
             <div className="relative w-[130px] sm:w-[150px] min-h-[88px] shrink-0 bg-[#0d161a] overflow-hidden">
-              <Image
+              <img
                 src={currentPreviewItem.imageUrl || '/images/promo-model.png'}
                 alt="Promo Model Preview"
-                fill
-                sizes="150px"
-                className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                unoptimized
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.endsWith('/images/promo-model.png')) {
+                    target.src = '/images/promo-model.png';
+                  }
+                }}
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-r from-transparent to-[#0c1619]" />
             </div>

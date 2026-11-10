@@ -64,17 +64,16 @@ export function KingStreamPromoBanner() {
       >
         {/* Left Model / Banner Photo */}
         <div className="relative w-[130px] sm:w-[150px] min-h-[88px] shrink-0 bg-[#0d161a] overflow-hidden">
-          <Image
+          <img
             src={currentAd.imageUrl || adConfig.imageUrl || '/images/promo-model.png'}
             alt={currentAd.title || 'Promo Model KingStream'}
-            fill
-            sizes="150px"
-            className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
-            priority
-            unoptimized={
-              (currentAd.imageUrl || adConfig.imageUrl)?.startsWith('data:') ||
-              (currentAd.imageUrl || adConfig.imageUrl)?.startsWith('http')
-            }
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.src.endsWith('/images/promo-model.png')) {
+                target.src = '/images/promo-model.png';
+              }
+            }}
+            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
           />
           {/* Subtle inner gradient shadow on right edge of image */}
           <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-r from-transparent to-[#0c1619]" />
