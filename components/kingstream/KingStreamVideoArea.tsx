@@ -304,15 +304,28 @@ export function KingStreamVideoArea({
               >
                 {/* Thumbnail Container */}
                 <div className="relative aspect-video w-full overflow-hidden bg-black/50">
-                  <img
-                    src={video.thumbnailUrl || '/images/video-placeholder.png'}
-                    alt={video.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&auto=format&fit=crop&q=80';
-                    }}
-                  />
+                  {video.videoUrl &&
+                  video.videoUrl.startsWith('/uploads/') &&
+                  (!video.thumbnailUrl ||
+                    video.thumbnailUrl.includes('photo-1516450360452-9312f5e86fc7')) ? (
+                    <video
+                      src={`${video.videoUrl}#t=1.5`}
+                      preload="metadata"
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+                    />
+                  ) : (
+                    <img
+                      src={video.thumbnailUrl || '/images/video-placeholder.png'}
+                      alt={video.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&auto=format&fit=crop&q=80';
+                      }}
+                    />
+                  )}
 
                   {/* Duration Badge */}
                   <div className="absolute bottom-2 right-2 bg-black/85 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 font-mono">
@@ -609,15 +622,28 @@ export function KingStreamVideoArea({
                   >
                     {/* Thumbnail with duration & rank */}
                     <div className="relative aspect-video w-full overflow-hidden bg-black/60">
-                      <img
-                        src={rec.thumbnailUrl}
-                        alt={rec.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&auto=format&fit=crop&q=80';
-                        }}
-                      />
+                      {rec.videoUrl &&
+                      rec.videoUrl.startsWith('/uploads/') &&
+                      (!rec.thumbnailUrl ||
+                        rec.thumbnailUrl.includes('photo-1516450360452-9312f5e86fc7')) ? (
+                        <video
+                          src={`${rec.videoUrl}#t=1.5`}
+                          preload="metadata"
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 pointer-events-none"
+                        />
+                      ) : (
+                        <img
+                          src={rec.thumbnailUrl}
+                          alt={rec.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&auto=format&fit=crop&q=80';
+                          }}
+                        />
+                      )}
 
                       {/* Prominent Duration Badge */}
                       <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-white text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded flex items-center gap-0.5">
