@@ -1,16 +1,41 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kingstream-postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=kingstream
+      - POSTGRES_PASSWORD=kingstream123
+      - POSTGRES_DB=kingstream_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kingstream -d kingstream_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   kingstream:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: kingstream-app
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - DATABASE_URL=postgresql://kingstream:kingstream123@postgres:5432/kingstream_db
     volumes:
       - ./data:/app/data
       - ./public/uploads:/app/public/uploads
 
+volumes:
+  postgres_data:

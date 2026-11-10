@@ -13,6 +13,7 @@ import {
   ExternalLink,
   ArrowRight,
   TrendingUp,
+  Database,
 } from 'lucide-react';
 import { useKingStream } from '../KingStreamContext';
 import {
@@ -28,6 +29,18 @@ interface AdminOverviewProps {
 
 export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
   const { videos, adConfig, telegramConfig } = useKingStream();
+  const [dbEngine, setDbEngine] = React.useState<string>('PostgreSQL / Hybrid DB');
+
+  React.useEffect(() => {
+    fetch('/api/kingstream/db-status', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.database?.engine) {
+          setDbEngine(data.database.engine);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const totalViews = videos.reduce((acc, curr) => acc + (Number(curr.views) || 0), 0);
   const totalPlayClicks = videos.reduce((acc, curr) => acc + (Number(curr.playClicks) || 0), 0);
@@ -38,9 +51,15 @@ export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
       {/* Welcome Banner */}
       <div className="relative overflow-hidden bg-gradient-to-r from-purple-950/60 via-[#190c33] to-[#120824] border border-purple-800/40 rounded-2xl p-6 shadow-xl">
         <div className="relative z-10 max-w-2xl">
-          <span className="inline-block text-xs font-bold uppercase tracking-wider text-purple-300 bg-purple-900/50 px-3 py-1 rounded-full mb-3 border border-purple-700/40">
-            Pusat Kontrol KingStream 2026
-          </span>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className="inline-block text-xs font-bold uppercase tracking-wider text-purple-300 bg-purple-900/50 px-3 py-1 rounded-full border border-purple-700/40">
+              Pusat Kontrol KingStream 2026
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-300 bg-emerald-950/70 px-3 py-1 rounded-full border border-emerald-700/50">
+              <Database className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Database: {dbEngine}</span>
+            </span>
+          </div>
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
             Selamat Datang di Panel Admin KingStream
           </h2>
