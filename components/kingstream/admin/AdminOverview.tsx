@@ -15,7 +15,12 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { useKingStream } from '../KingStreamContext';
-import { formatViews, formatNumber, formatTimeAgo } from '@/lib/kingstream-storage';
+import {
+  formatViews,
+  formatNumber,
+  formatTimeAgo,
+  getActiveAdItems,
+} from '@/lib/kingstream-storage';
 
 interface AdminOverviewProps {
   onNavigateTab: (tab: 'video' | 'ads' | 'telegram') => void;
@@ -26,6 +31,7 @@ export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
 
   const totalViews = videos.reduce((acc, curr) => acc + (Number(curr.views) || 0), 0);
   const totalPlayClicks = videos.reduce((acc, curr) => acc + (Number(curr.playClicks) || 0), 0);
+  const activeAdItems = getActiveAdItems(adConfig);
 
   return (
     <div className="space-y-6">
@@ -139,13 +145,15 @@ export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
             <span className="text-xs text-slate-400 font-medium">Banner Promo Iklan</span>
             <h3 className="text-lg font-black text-white mt-1.5">
               {adConfig.isActive ? (
-                <span className="text-emerald-400">Aktif</span>
+                <span className="text-emerald-400">
+                  {activeAdItems.length} Link Aktif
+                </span>
               ) : (
                 <span className="text-rose-400">Nonaktif</span>
               )}
             </h3>
-            <span className="text-[11px] text-slate-400 mt-1 line-clamp-1 max-w-[130px]" title={adConfig.targetUrl}>
-              Link: {adConfig.targetUrl || 'Default'}
+            <span className="text-[11px] text-slate-400 mt-1 line-clamp-1 max-w-[140px]">
+              {activeAdItems.length > 1 ? 'Mode Rotasi Bergantian' : `Link: ${activeAdItems[0]?.targetUrl || 'Default'}`}
             </span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-amber-950/40 border border-amber-800/40 flex items-center justify-center text-amber-400 shrink-0">
@@ -241,30 +249,38 @@ export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
         {/* Ad Target Summary (1 Col) */}
         <div className="bg-[#130A24] border border-[#2b1848] rounded-2xl p-5 space-y-4 flex flex-col justify-between">
           <div>
-            <h3 className="font-bold text-sm text-white flex items-center gap-2 mb-3">
-              <Megaphone className="w-4 h-4 text-emerald-400" />
-              <span>Iklan Banner Terpasang</span>
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                <Megaphone className="w-4 h-4 text-emerald-400" />
+                <span>Daftar Link Iklan ({activeAdItems.length} Aktif)</span>
+              </h3>
+              <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700/40 px-2 py-0.5 rounded-full font-semibold">
+                Setiap {adConfig.rotationIntervalSeconds || 5}d
+              </span>
+            </div>
 
-            <div className="p-3.5 bg-[#0D061A] rounded-xl border border-purple-900/40 space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Judul:</span>
-                <span className="font-bold text-white">{adConfig.title}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Sub-judul:</span>
-                <span className="text-slate-200">{adConfig.subtitle}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Teks Tombol:</span>
-                <span className="text-rose-400 font-semibold">{adConfig.buttonText}</span>
-              </div>
-              <div className="pt-2 border-t border-purple-900/30">
-                <span className="text-[11px] text-slate-400 block mb-1">Target Link Pengunjung:</span>
-                <span className="font-mono text-purple-300 text-[11px] break-all block bg-purple-950/40 p-1.5 rounded">
-                  {adConfig.targetUrl || '(Belum diset)'}
-                </span>
-              </div>
+            <div className="space-y-2 max-h-[210px] overflow-y-auto pr-1">
+              {activeAdItems.map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  className="p-3 bg-[#0D061A] rounded-xl border border-purple-900/40 space-y-1 text-xs"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white flex items-center gap-1.5">
+                      <span className="text-[10px] bg-purple-900/70 text-purple-200 px-1.5 py-0.5 rounded">
+                        #{idx + 1}
+                      </span>
+                      <span>{item.title || 'BONUS SPESIAL'}</span>
+                    </span>
+                    <span className="text-[10px] text-rose-400 font-semibold">
+                      {item.buttonText || 'KLIK PROMO'}
+                    </span>
+                  </div>
+                  <span className="font-mono text-purple-300 text-[11px] break-all block bg-purple-950/40 p-1.5 rounded">
+                    {item.targetUrl}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -272,7 +288,7 @@ export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
             onClick={() => onNavigateTab('ads')}
             className="w-full py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-emerald-950 cursor-pointer"
           >
-            Ubah Pengaturan Link Iklan
+            Kelola & Tambah Link Iklan
           </button>
         </div>
       </div>

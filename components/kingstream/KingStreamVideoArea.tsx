@@ -18,7 +18,12 @@ import {
 } from 'lucide-react';
 import { NavItem } from './KingStreamNavbar';
 import { useKingStream } from './KingStreamContext';
-import { KingStreamVideo, formatViews, formatTimeAgo } from '@/lib/kingstream-storage';
+import {
+  KingStreamVideo,
+  formatViews,
+  formatTimeAgo,
+  getNextRotatingAdUrl,
+} from '@/lib/kingstream-storage';
 
 interface KingStreamVideoAreaProps {
   activeCategory: NavItem;
@@ -167,18 +172,21 @@ export function KingStreamVideoArea({
     currentPage * itemsPerPage
   );
 
-  // Direct ke iklan function
+  // Direct ke iklan function (Berganti-ganti / rotasi otomatis dari daftar link iklan aktif)
   const triggerAdDirect = () => {
-    if (adConfig && adConfig.directAdOnPlay !== false && adConfig.targetUrl) {
-      let targetUrl = adConfig.targetUrl.trim();
-      if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
-        targetUrl = 'https://' + targetUrl;
-      }
+    if (adConfig && adConfig.directAdOnPlay !== false) {
+      const nextUrl = getNextRotatingAdUrl(adConfig);
+      if (nextUrl) {
+        let targetUrl = nextUrl.trim();
+        if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+          targetUrl = 'https://' + targetUrl;
+        }
 
-      if (adConfig.directAdMode === 'same_tab') {
-        window.location.href = targetUrl;
-      } else {
-        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        if (adConfig.directAdMode === 'same_tab') {
+          window.location.href = targetUrl;
+        } else {
+          window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        }
       }
     }
   };
@@ -368,11 +376,10 @@ export function KingStreamVideoArea({
                 <button
                   key={idx}
                   onClick={() => setCurrentPage(idx + 1)}
-                  className={`w-8 h-8 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                    currentPage === idx + 1
+                  className={`w-8 h-8 rounded-lg text-xs font-semibold transition cursor-pointer ${currentPage === idx + 1
                       ? 'bg-purple-600 text-white shadow-md shadow-purple-900'
                       : 'bg-[#130A24] border border-[#2b1848] text-slate-300 hover:bg-purple-900/30'
-                  }`}
+                    }`}
                 >
                   {idx + 1}
                 </button>
@@ -436,11 +443,11 @@ export function KingStreamVideoArea({
               </div>
 
               {selectedVideo.videoUrl &&
-              (selectedVideo.videoUrl.endsWith('.mp4') ||
-                selectedVideo.videoUrl.endsWith('.webm') ||
-                selectedVideo.videoUrl.startsWith('/uploads/') ||
-                selectedVideo.videoUrl.startsWith('data:video') ||
-                selectedVideo.videoUrl.startsWith('blob:')) ? (
+                (selectedVideo.videoUrl.endsWith('.mp4') ||
+                  selectedVideo.videoUrl.endsWith('.webm') ||
+                  selectedVideo.videoUrl.startsWith('/uploads/') ||
+                  selectedVideo.videoUrl.startsWith('data:video') ||
+                  selectedVideo.videoUrl.startsWith('blob:')) ? (
                 <video
                   src={selectedVideo.videoUrl}
                   controls
@@ -560,22 +567,20 @@ export function KingStreamVideoArea({
                   <button
                     type="button"
                     onClick={() => setRecSortMode('all')}
-                    className={`text-[11px] px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${
-                      recSortMode === 'all'
+                    className={`text-[11px] px-2.5 py-1 rounded-lg transition cursor-pointer font-medium ${recSortMode === 'all'
                         ? 'bg-purple-600 text-white shadow-sm'
                         : 'bg-[#150B2A] border border-[#2b1848] text-slate-400 hover:text-white'
-                    }`}
+                      }`}
                   >
                     Semua
                   </button>
                   <button
                     type="button"
                     onClick={() => setRecSortMode('most_viewed')}
-                    className={`text-[11px] px-2.5 py-1 rounded-lg transition cursor-pointer font-medium flex items-center gap-1 ${
-                      recSortMode === 'most_viewed'
+                    className={`text-[11px] px-2.5 py-1 rounded-lg transition cursor-pointer font-medium flex items-center gap-1 ${recSortMode === 'most_viewed'
                         ? 'bg-purple-600 text-white shadow-sm'
                         : 'bg-[#150B2A] border border-[#2b1848] text-slate-400 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <Eye className="w-3 h-3" />
                     <span>Paling Banyak Dilihat</span>
@@ -583,11 +588,10 @@ export function KingStreamVideoArea({
                   <button
                     type="button"
                     onClick={() => setRecSortMode('most_popular')}
-                    className={`text-[11px] px-2.5 py-1 rounded-lg transition cursor-pointer font-medium flex items-center gap-1 ${
-                      recSortMode === 'most_popular'
+                    className={`text-[11px] px-2.5 py-1 rounded-lg transition cursor-pointer font-medium flex items-center gap-1 ${recSortMode === 'most_popular'
                         ? 'bg-purple-600 text-white shadow-sm'
                         : 'bg-[#150B2A] border border-[#2b1848] text-slate-400 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <Flame className="w-3 h-3" />
                     <span>Paling Populer</span>

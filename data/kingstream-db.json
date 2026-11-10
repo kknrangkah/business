@@ -13,6 +13,41 @@
       "playClicks": 3
     }
   ],
-  "adConfig": {},
+  "adConfig": {
+    "title": "BONUS SPESIAL",
+    "subtitle": "ANTI ZONK HARI INI",
+    "buttonText": "KLIK PROMO AKTIF",
+    "targetUrl": "https://uplcm.com/4/12217721",
+    "imageUrl": "/images/promo-model.png",
+    "tagline": "PROMO VIP RESMI",
+    "isActive": true,
+    "openInNewTab": true,
+    "playerAdEnabled": true,
+    "directAdOnPlay": true,
+    "directAdMode": "new_tab",
+    "rotationIntervalSeconds": 5,
+    "adItems": [
+      {
+        "id": "ad-default-1",
+        "title": "BONUS SPESIAL",
+        "subtitle": "ANTI ZONK HARI INI",
+        "buttonText": "KLIK PROMO AKTIF",
+        "targetUrl": "https://uplcm.com/4/12217721",
+        "imageUrl": "/images/promo-model.png",
+        "tagline": "PROMO VIP RESMI",
+        "isActive": true
+      },
+      {
+        "id": "ad-1794216626145-4opd",
+        "targetUrl": "https://www.profitableratecpmnetwork.com/hn6mpvhfg?key=27d0decc649aacc50c0185c52a1b39a4",
+        "title": "BONUS SPESIAL",
+        "subtitle": "ANTI ZONK HARI INI",
+        "buttonText": "KLIK PROMO AKTIF",
+        "tagline": "PROMO VIP RESMI",
+        "imageUrl": "/images/promo-model.png",
+        "isActive": true
+      }
+    ]
+  },
   "telegramConfig": {}
 }

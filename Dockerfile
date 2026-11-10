@@ -36,11 +36,11 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/data ./data
 
-# Set the correct permissions for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+# Set the correct permissions for prerender cache, uploads, and data
+RUN mkdir -p .next public/uploads data && chown -R nextjs:nodejs .next public data
 
 # Standalone output copy
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

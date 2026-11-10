@@ -19,8 +19,14 @@ import {
 import { KingStreamNavbar, NavItem } from '@/components/kingstream/KingStreamNavbar';
 import { KingStreamFooter } from '@/components/kingstream/KingStreamFooter';
 import { KingStreamFloatingButton } from '@/components/kingstream/KingStreamFloatingButton';
+import { KingStreamPromoBanner } from '@/components/kingstream/KingStreamPromoBanner';
 import { KingStreamProvider, useKingStream } from '@/components/kingstream/KingStreamContext';
-import { KingStreamVideo, formatViews, formatTimeAgo } from '@/lib/kingstream-storage';
+import {
+  KingStreamVideo,
+  formatViews,
+  formatTimeAgo,
+  getNextRotatingAdUrl,
+} from '@/lib/kingstream-storage';
 import { toast } from 'sonner';
 
 interface WatchPageProps {
@@ -47,16 +53,19 @@ function WatchContent({ videoId }: { videoId: string }) {
   }, [currentVideo?.id, recordVideoPlay]);
 
   const triggerAdDirect = () => {
-    if (adConfig && adConfig.directAdOnPlay !== false && adConfig.targetUrl) {
-      let targetUrl = adConfig.targetUrl.trim();
-      if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
-        targetUrl = 'https://' + targetUrl;
-      }
+    if (adConfig && adConfig.directAdOnPlay !== false) {
+      const nextUrl = getNextRotatingAdUrl(adConfig);
+      if (nextUrl) {
+        let targetUrl = nextUrl.trim();
+        if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+          targetUrl = 'https://' + targetUrl;
+        }
 
-      if (adConfig.directAdMode === 'same_tab') {
-        window.location.href = targetUrl;
-      } else {
-        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        if (adConfig.directAdMode === 'same_tab') {
+          window.location.href = targetUrl;
+        } else {
+          window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        }
       }
     }
   };
@@ -290,39 +299,8 @@ function WatchContent({ videoId }: { videoId: string }) {
           </div>
         </div>
 
-        {/* Sponsor Banner Below Player */}
-        {adConfig.isActive && adConfig.targetUrl && (
-          <div className="my-6">
-            <div
-              onClick={triggerAdDirect}
-              className="group cursor-pointer border-2 border-[#10b981] rounded-2xl overflow-hidden bg-[#0c1619] shadow-[0_0_18px_rgba(16,185,129,0.3)] hover:shadow-[0_0_24px_rgba(16,185,129,0.55)] transition-all duration-300 max-w-xl mx-auto flex items-stretch select-none"
-            >
-              <div className="relative w-[130px] sm:w-[150px] shrink-0 bg-[#0d161a] overflow-hidden">
-                <img
-                  src={adConfig.imageUrl || '/images/promo-model.png'}
-                  alt="Promo Model"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-
-              <div className="flex-1 py-3 px-3 sm:px-4 flex flex-col items-center justify-center text-center bg-gradient-to-r from-[#0c1619] via-[#0f1d22] to-[#0c1619]">
-                <h3 className="text-white font-black text-sm sm:text-base tracking-wider">
-                  {adConfig.title || 'BONUS SPESIAL'}
-                </h3>
-                <p className="text-slate-100 font-bold text-[11px] sm:text-xs mt-0.5">
-                  {adConfig.subtitle || 'ANTI ZONK HARI INI'}
-                </p>
-                <span className="mt-1.5 inline-block bg-[#dc2626] group-hover:bg-[#ef4444] text-white text-[10px] font-black px-3 py-0.5 rounded uppercase">
-                  {adConfig.buttonText || 'KLIK PROMO AKTIF'}
-                </span>
-                <div className="flex items-center gap-1 mt-1.5 text-[10px] font-black text-[#10b981]">
-                  <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
-                  <span>{adConfig.tagline || 'PROMO VIP RESMI'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Rotating Sponsor Banner Below Player */}
+        <KingStreamPromoBanner />
 
         {/* Recommendations Section */}
         {recommendations.length > 0 && (

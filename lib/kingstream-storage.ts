@@ -16,6 +16,17 @@ export interface KingStreamVideo {
   description?: string;
 }
 
+export interface AdBannerItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  targetUrl: string;
+  imageUrl: string;
+  tagline: string;
+  isActive: boolean;
+}
+
 export interface AdBannerConfig {
   title: string;
   subtitle: string;
@@ -28,6 +39,8 @@ export interface AdBannerConfig {
   playerAdEnabled?: boolean;
   directAdOnPlay: boolean;
   directAdMode: 'new_tab' | 'same_tab';
+  rotationIntervalSeconds?: number;
+  adItems?: AdBannerItem[];
 }
 
 export interface TelegramConfig {
@@ -49,6 +62,19 @@ export const DEFAULT_AD_CONFIG: AdBannerConfig = {
   playerAdEnabled: true,
   directAdOnPlay: true,
   directAdMode: 'new_tab',
+  rotationIntervalSeconds: 5,
+  adItems: [
+    {
+      id: 'ad-default-1',
+      title: 'BONUS SPESIAL',
+      subtitle: 'ANTI ZONK HARI INI',
+      buttonText: 'KLIK PROMO AKTIF',
+      targetUrl: 'https://t.me/KingStreamOfficial',
+      imageUrl: '/images/promo-model.png',
+      tagline: 'PROMO VIP RESMI',
+      isActive: true,
+    },
+  ],
 };
 
 export const DEFAULT_TELEGRAM_CONFIG: TelegramConfig = {
@@ -136,8 +162,51 @@ export function deleteStoredVideo(id: string): boolean {
 }
 
 /* ─────────────────────────────────────────────
-   Ad Configuration Operations
+   Ad Configuration Operations & Rotation Helpers
 ───────────────────────────────────────────── */
+export function getActiveAdItems(adConfig: AdBannerConfig): AdBannerItem[] {
+  if (Array.isArray(adConfig?.adItems) && adConfig.adItems.length > 0) {
+    const activeList = adConfig.adItems.filter(
+      (item) => item && item.isActive !== false && item.targetUrl?.trim()
+    );
+    if (activeList.length > 0) {
+      return activeList;
+    }
+  }
+  return [
+    {
+      id: 'ad-fallback-primary',
+      title: adConfig?.title || 'BONUS SPESIAL',
+      subtitle: adConfig?.subtitle || 'ANTI ZONK HARI INI',
+      buttonText: adConfig?.buttonText || 'KLIK PROMO AKTIF',
+      targetUrl: adConfig?.targetUrl || 'https://t.me/KingStreamOfficial',
+      imageUrl: adConfig?.imageUrl || '/images/promo-model.png',
+      tagline: adConfig?.tagline || 'PROMO VIP RESMI',
+      isActive: adConfig?.isActive !== false,
+    },
+  ];
+}
+
+export function getNextRotatingAdUrl(adConfig: AdBannerConfig): string {
+  const activeItems = getActiveAdItems(adConfig);
+  if (activeItems.length === 0) {
+    return adConfig?.targetUrl || '';
+  }
+  if (typeof window === 'undefined') {
+    return activeItems[0].targetUrl;
+  }
+  try {
+    const rotKey = 'kingstream_ad_rotation_idx_v1';
+    const rawIdx = window.localStorage.getItem(rotKey);
+    const currentIdx = rawIdx ? parseInt(rawIdx, 10) || 0 : 0;
+    const picked = activeItems[currentIdx % activeItems.length];
+    window.localStorage.setItem(rotKey, String((currentIdx + 1) % activeItems.length));
+    return picked.targetUrl;
+  } catch {
+    return activeItems[0].targetUrl;
+  }
+}
+
 export function getStoredAdConfig(): AdBannerConfig {
   return safeGet<AdBannerConfig>(STORAGE_KEYS.AD_CONFIG, DEFAULT_AD_CONFIG);
 }
