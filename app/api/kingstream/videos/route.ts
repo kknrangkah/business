@@ -1,20 +1,45 @@
 import { NextResponse } from 'next/server';
-import {
-  getAllVideosFromDb,
-  upsertVideoInDb,
-  updateVideoInDb,
-  deleteVideoFromDb,
-} from '@/lib/kingstream-db';
+import fs from 'fs';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 
+const DB_PATH = path.join(process.cwd(), 'data', 'kingstream-db.json');
+
+function readDb() {
+  try {
+    if (!fs.existsSync(DB_PATH)) {
+      return { videos: [], adConfig: {}, telegramConfig: {} };
+    }
+    const data = fs.readFileSync(DB_PATH, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Error reading kingstream-db.json:', error);
+    return { videos: [], adConfig: {}, telegramConfig: {} };
+  }
+}
+
+function writeDb(data: any) {
+  try {
+    const dir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+    return true;
+  } catch (error) {
+    console.error('Error writing kingstream-db.json:', error);
+    return false;
+  }
+}
+
 // GET /api/kingstream/videos
 export async function GET() {
-  const videos = await getAllVideosFromDb();
+  const db = readDb();
   return NextResponse.json(
     {
       success: true,
-      videos,
+      videos: db.videos || [],
       timestamp: Date.now(),
     },
     {
@@ -29,16 +54,39 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { video, videos } = await upsertVideoInDb(body);
+    const db = readDb();
+    const currentVideos = db.videos || [];
+
+    const videoId = body.id || `ks-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const newVideo = {
+      ...body,
+      id: videoId,
+      createdAt: body.createdAt || new Date().toISOString(),
+      views: Number(body.views) || 0,
+      playClicks: Number(body.playClicks) || 0,
+    };
+
+    // Deduplicate / Upsert by ID
+    const existingIndex = currentVideos.findIndex((v: any) => v.id === videoId);
+    let updatedVideos = [];
+    if (existingIndex !== -1) {
+      currentVideos[existingIndex] = { ...currentVideos[existingIndex], ...newVideo };
+      updatedVideos = currentVideos;
+    } else {
+      updatedVideos = [newVideo, ...currentVideos];
+    }
+
+    db.videos = updatedVideos;
+    writeDb(db);
 
     return NextResponse.json({
       success: true,
-      video,
-      videos,
+      video: newVideo,
+      videos: updatedVideos,
     });
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: 'Gagal menambahkan video ke database' },
+      { success: false, error: 'Gagal menambahkan video' },
       { status: 500 }
     );
   }
@@ -57,28 +105,50 @@ export async function PUT(req: Request) {
       );
     }
 
-    const { video, videos } = await updateVideoInDb(
-      id,
-      updates,
-      typeof incrementViews === 'number' ? incrementViews : undefined,
-      typeof incrementPlayClicks === 'number' ? incrementPlayClicks : undefined
-    );
+    const db = readDb();
+    const videos = db.videos || [];
+    const index = videos.findIndex((v: any) => v.id === id);
 
-    if (!video) {
+    if (index === -1) {
       return NextResponse.json(
         { success: false, error: 'Video tidak ditemukan' },
         { status: 404 }
       );
     }
 
+    const current = videos[index];
+    const currentViews = Number(current.views) || 0;
+    const currentPlayClicks = Number(current.playClicks) || 0;
+
+    const updatedVideo = {
+      ...current,
+      ...updates,
+      views:
+        typeof incrementViews === 'number'
+          ? currentViews + incrementViews
+          : updates.views !== undefined
+            ? Number(updates.views) || 0
+            : currentViews,
+      playClicks:
+        typeof incrementPlayClicks === 'number'
+          ? currentPlayClicks + incrementPlayClicks
+          : updates.playClicks !== undefined
+            ? Number(updates.playClicks) || 0
+            : currentPlayClicks,
+    };
+
+    videos[index] = updatedVideo;
+    db.videos = videos;
+    writeDb(db);
+
     return NextResponse.json({
       success: true,
-      video,
+      video: updatedVideo,
       videos,
     });
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: 'Gagal memperbarui video di database' },
+      { success: false, error: 'Gagal memperbarui video' },
       { status: 500 }
     );
   }
@@ -97,16 +167,19 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const videos = await deleteVideoFromDb(id);
+    const db = readDb();
+    const videos = (db.videos || []).filter((v: any) => v.id !== id);
+    db.videos = videos;
+    writeDb(db);
 
     return NextResponse.json({
       success: true,
-      message: 'Video berhasil dihapus dari database',
+      message: 'Video berhasil dihapus',
       videos,
     });
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: 'Gagal menghapus video dari database' },
+      { success: false, error: 'Gagal menghapus video' },
       { status: 500 }
     );
   }

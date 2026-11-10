@@ -64,3 +64,4 @@ CREATE TABLE IF NOT EXISTS admin_users (
 INSERT INTO admin_users (username, password_plain, role)
 VALUES ('admin', 'admin123', 'superadmin')
 ON CONFLICT (username) DO NOTHING;
+
