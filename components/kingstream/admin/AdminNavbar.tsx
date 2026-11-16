@@ -30,13 +30,13 @@ export function AdminNavbar({ user }: AdminNavbarProps) {
           <div className="flex items-center gap-2.5">
             <img
               src="/images/kingstream-logo.png"
-              alt="KingStream 18+"
+              alt="Stream18+"
               className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.55)]"
             />
 
             <div className="flex items-baseline">
-              <span className="text-white font-bold text-xl">King</span>
-              <span className="text-[#c084fc] font-bold text-xl">Stream</span>
+              <span className="text-white font-bold text-xl">Stream</span>
+              <span className="text-[#c084fc] font-bold text-xl">18+</span>
               <span className="ml-2.5 text-[11px] font-bold uppercase bg-purple-900/60 text-purple-300 px-2 py-0.5 rounded-full border border-purple-700/50">
                 Dashboard Admin
               </span>
@@ -50,7 +50,7 @@ export function AdminNavbar({ user }: AdminNavbarProps) {
               href="/"
               target="_blank"
               className="inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/40 px-3 py-1.5 rounded-xl transition cursor-pointer"
-              title="Buka Website KingStream di Tab Baru"
+              title="Buka Website Stream18+ di Tab Baru"
             >
               <span>Lihat Website</span>
               <ExternalLink className="w-3.5 h-3.5 text-purple-400" />

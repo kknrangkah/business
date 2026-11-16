@@ -63,7 +63,7 @@ export function AdminTelegramManager() {
         <div className="py-6 px-4 bg-[#0D061A] rounded-xl border border-purple-950/60 flex items-center justify-center">
           <div className="flex items-center gap-2">
             <div className="bg-[#150B2A] border border-[#2e1d52] text-slate-200 text-xs sm:text-sm font-medium px-4 py-2 rounded-full shadow-lg">
-              {formData.channelName || 'Channel Tele KingStream'}
+              {formData.channelName || 'Channel Tele Stream18+'}
             </div>
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#6b21a8] to-[#9333ea] flex items-center justify-center text-white shadow-lg shadow-purple-950">
               <CrownIcon className="w-5 h-5 text-white" />
@@ -82,7 +82,7 @@ export function AdminTelegramManager() {
             type="text"
             value={formData.channelName}
             onChange={(e) => setFormData({ ...formData, channelName: e.target.value })}
-            placeholder="Channel Tele KingStream"
+            placeholder="Channel Tele Stream18+"
             className="w-full bg-[#0D061A] border border-[#2b1848] focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white"
             required
           />
@@ -96,7 +96,7 @@ export function AdminTelegramManager() {
             type="url"
             value={formData.channelUrl}
             onChange={(e) => setFormData({ ...formData, channelUrl: e.target.value })}
-            placeholder="https://t.me/KingStreamOfficial"
+            placeholder="https://t.me/Stream18Official"
             className="w-full bg-[#0D061A] border border-[#2b1848] focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white font-mono"
             required
           />
@@ -110,7 +110,7 @@ export function AdminTelegramManager() {
             type="text"
             value={formData.channelHandle}
             onChange={(e) => setFormData({ ...formData, channelHandle: e.target.value })}
-            placeholder="@KingStreamOfficial"
+            placeholder="@Stream18Official"
             className="w-full bg-[#0D061A] border border-[#2b1848] focus:border-purple-500 rounded-xl px-4 py-2.5 text-sm text-white font-mono"
           />
         </div>

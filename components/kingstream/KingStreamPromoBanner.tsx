@@ -66,7 +66,7 @@ export function KingStreamPromoBanner() {
         <div className="relative w-[130px] sm:w-[150px] min-h-[88px] shrink-0 bg-[#0d161a] overflow-hidden">
           <img
             src={currentAd.imageUrl || adConfig.imageUrl || '/images/promo-model.png'}
-            alt={currentAd.title || 'Promo Model KingStream'}
+            alt={currentAd.title || 'Promo Model Stream18+'}
             onError={(e) => {
               const target = e.currentTarget;
               if (!target.src.endsWith('/images/promo-model.png')) {

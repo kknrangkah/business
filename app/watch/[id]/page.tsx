@@ -84,7 +84,7 @@ function WatchContent({ videoId }: { videoId: string }) {
   const handleShareWhatsApp = () => {
     if (typeof window !== 'undefined' && currentVideo) {
       const text = encodeURIComponent(
-        `Nonton video viral "${currentVideo.title}" di KingStream: ${window.location.href}`
+        `Nonton video viral "${currentVideo.title}" di Stream18+: ${window.location.href}`
       );
       window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
     }
@@ -155,7 +155,7 @@ function WatchContent({ videoId }: { videoId: string }) {
             className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white bg-purple-950/20 hover:bg-purple-900/30 border border-purple-900/30 px-3 py-1.5 rounded-lg transition"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Kembali ke Beranda KingStream</span>
+            <span>Kembali ke Beranda Stream18+</span>
           </Link>
         </div>
 
@@ -169,7 +169,7 @@ function WatchContent({ videoId }: { videoId: string }) {
             {/* Overlay Brand Logo Watermark (Top Left) */}
             <img
               src="/images/kingstream-logo.png"
-              alt="KingStream 18+"
+              alt="Stream18+"
               className="absolute top-3 left-3 z-10 w-9 h-9 sm:w-11 sm:h-11 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] pointer-events-none opacity-90"
             />
 

@@ -112,7 +112,7 @@ function AdminDashboardContent() {
 
       {/* Admin Footer */}
       <footer className="w-full border-t border-purple-950/30 py-4 text-center text-xs text-slate-500">
-        KingStream Admin Control System © 2026. Seluruh hak cipta dilindungi.
+        Stream18+ Admin Control System © 2026. Seluruh hak cipta dilindungi.
       </footer>
     </div>
   );

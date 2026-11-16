@@ -10,7 +10,7 @@ export function KingStreamFloatingButton() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(telegramConfig.channelHandle || '@KingStreamOfficial');
+    navigator.clipboard.writeText(telegramConfig.channelHandle || '@Stream18Official');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -24,7 +24,9 @@ export function KingStreamFloatingButton() {
           onClick={() => setShowModal(true)}
           className="bg-[#150B2A]/90 hover:bg-[#1f103d] border border-[#2e1d52] hover:border-purple-500/60 text-slate-200 text-xs sm:text-sm font-medium px-4 py-2 rounded-full shadow-xl shadow-black/40 backdrop-blur-md transition-all duration-200 cursor-pointer active:scale-95"
         >
-          {telegramConfig.channelName || 'Channel Tele KingStream'}
+          {telegramConfig.channelName && telegramConfig.channelName !== 'Channel Tele KingStream'
+            ? telegramConfig.channelName
+            : 'Channel Tele Stream18+'}
         </button>
 
         {/* Custom 18+ Brand Logo Button */}
@@ -35,7 +37,7 @@ export function KingStreamFloatingButton() {
         >
           <img
             src="/images/kingstream-logo.png"
-            alt="KingStream 18+"
+            alt="Stream18+"
             className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]"
           />
         </button>
@@ -55,7 +57,7 @@ export function KingStreamFloatingButton() {
             <div className="w-16 h-16 mx-auto flex items-center justify-center mb-3">
               <img
                 src="/images/kingstream-logo.png"
-                alt="KingStream 18+"
+                alt="Stream18+"
                 className="w-full h-full object-contain drop-shadow-[0_0_14px_rgba(168,85,247,0.65)]"
               />
             </div>
@@ -70,7 +72,7 @@ export function KingStreamFloatingButton() {
 
             <div className="mt-4 p-2.5 bg-purple-950/40 border border-purple-800/30 rounded-xl flex items-center justify-between">
               <span className="text-xs font-mono text-purple-300">
-                {telegramConfig.channelHandle || '@KingStreamOfficial'}
+                {telegramConfig.channelHandle || '@Stream18Official'}
               </span>
               <button
                 onClick={handleCopy}

@@ -759,7 +759,7 @@ export function AdminVideoManager() {
                             <span>Play Video dari URL di Player</span>
                           </span>
                           <span className="text-[11px] text-slate-400 block mt-0.5">
-                            Video diputar langsung di dalam layar player website KingStream (dan klik Play tetap membuka iklan sponsor).
+                            Video diputar langsung di dalam layar player website Stream18+ (dan klik Play tetap membuka iklan sponsor).
                           </span>
                         </div>
                       </label>

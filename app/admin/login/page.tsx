@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
         };
 
         setAdminSession(sessionData);
-        toast.success('Login berhasil! Selamat datang di Admin Dashboard KingStream.');
+        toast.success('Login berhasil! Selamat datang di Admin Dashboard Stream18+.');
         router.push('/admin/dashboard');
       } else {
         setIsLoading(false);
@@ -90,14 +90,14 @@ export default function AdminLoginPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 mb-2">
               <img
                 src="/images/kingstream-logo.png"
-                alt="KingStream 18+"
+                alt="Stream18+"
                 className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(168,85,247,0.65)]"
               />
             </div>
 
             <div className="flex items-baseline justify-center font-bold text-2xl tracking-tight">
-              <span className="text-white">King</span>
-              <span className="text-[#c084fc] drop-shadow-[0_0_12px_rgba(192,132,252,0.4)]">Stream</span>
+              <span className="text-white">Stream</span>
+              <span className="text-[#c084fc] drop-shadow-[0_0_12px_rgba(192,132,252,0.4)]">18+</span>
               <span className="ml-2 text-xs font-semibold uppercase bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded border border-purple-700/50">
                 Admin
               </span>
@@ -202,7 +202,7 @@ export default function AdminLoginPage() {
 
       {/* Footer */}
       <footer className="p-4 text-center text-xs text-slate-500 relative z-10">
-        © 2026 KingStream Admin Portal. Seluruh hak cipta dilindungi.
+        © 2026 Stream18+ Admin Portal. Seluruh hak cipta dilindungi.
       </footer>
     </div>
   );

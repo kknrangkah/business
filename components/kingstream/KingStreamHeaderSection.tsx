@@ -22,11 +22,11 @@ export function KingStreamHeaderSection({
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
           {categoryTitle && categoryTitle !== 'Home'
-            ? `KingStream - Video ${categoryTitle} 2026`
-            : 'KingStream - Nonton Video Terbaru 2026'}
+            ? `Stream18+ - Video ${categoryTitle} 2026`
+            : 'Stream18+ - Nonton Video Terbaru 2026'}
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          KingStream adalah situs streaming video viral, koleksi terbaru, dan video terupdate setiap hari
+          Stream18+ adalah situs streaming video viral, koleksi terbaru, dan video terupdate setiap hari
         </p>
       </div>
 

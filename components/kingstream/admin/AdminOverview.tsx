@@ -54,7 +54,7 @@ export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
         <div className="relative z-10 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2 mb-3">
             <span className="inline-block text-xs font-bold uppercase tracking-wider text-purple-300 bg-purple-900/50 px-3 py-1 rounded-full border border-purple-700/40">
-              Pusat Kontrol KingStream 2026
+              Pusat Kontrol Stream18+ 2026
             </span>
             <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-300 bg-emerald-950/70 px-3 py-1 rounded-full border border-emerald-700/50">
               <Database className="w-3.5 h-3.5 text-emerald-400" />
@@ -62,7 +62,7 @@ export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-            Selamat Datang di Panel Admin KingStream
+            Selamat Datang di Panel Admin Stream18+
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
             Kelola katalog video streaming, atur banner promosi & link iklan sponsor, serta pantau statistik total klik play button dan total dilihat secara real-time.
@@ -186,7 +186,7 @@ export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
           <div>
             <span className="text-xs text-slate-400 font-medium">Telegram Channel</span>
             <h3 className="text-sm font-bold text-white mt-1.5 line-clamp-1">
-              {telegramConfig.channelHandle || '@KingStream'}
+              {telegramConfig.channelHandle || '@Stream18+'}
             </h3>
             <span className="text-[11px] text-sky-400 mt-1 inline-block">
               Widget kanan bawah

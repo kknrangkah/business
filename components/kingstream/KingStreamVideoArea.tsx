@@ -453,7 +453,7 @@ export function KingStreamVideoArea({
               {/* Overlay Brand Logo Watermark (Top Left) */}
               <img
                 src="/images/kingstream-logo.png"
-                alt="KingStream 18+"
+                alt="Stream18+"
                 className="absolute top-3 left-3 z-10 w-9 h-9 sm:w-11 sm:h-11 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] pointer-events-none opacity-90"
               />
 

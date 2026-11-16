@@ -9,16 +9,16 @@ export function KingStreamFooter() {
         <div className="flex items-center gap-2">
           <img
             src="/images/kingstream-logo.png"
-            alt="KingStream 18+"
+            alt="Stream18+"
             className="w-7 h-7 object-contain drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]"
           />
           <span className="font-bold text-sm tracking-tight">
-            <span className="text-white">King</span>
-            <span className="text-[#c084fc]">Stream</span>
+            <span className="text-white">Stream</span>
+            <span className="text-[#c084fc]">18+</span>
           </span>
         </div>
         <p className="text-xs text-slate-500 font-normal tracking-wide">
-          © 2026 KingStream. Seluruh hak cipta dilindungi.
+          © 2026 Stream18+. Seluruh hak cipta dilindungi.
         </p>
       </div>
     </footer>

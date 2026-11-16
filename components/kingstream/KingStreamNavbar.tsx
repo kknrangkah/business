@@ -36,14 +36,14 @@ export function KingStreamNavbar({ activeTab, onSelectTab }: KingStreamNavbarPro
             {/* Custom 18+ Brand Logo */}
             <img
               src="/images/kingstream-logo.png"
-              alt="KingStream 18+ Logo"
+              alt="Stream18+ Logo"
               className="w-10 h-10 sm:w-11 sm:h-11 object-contain drop-shadow-[0_0_12px_rgba(168,85,247,0.55)] group-hover:scale-105 transition-transform"
             />
 
-            {/* Brand Title: King (White) Stream (Purple) */}
+            {/* Brand Title: Stream (White) 18+ (Purple) */}
             <div className="flex items-baseline font-bold text-xl sm:text-2xl tracking-tight">
-              <span className="text-white">King</span>
-              <span className="text-[#c084fc] drop-shadow-[0_0_12px_rgba(192,132,252,0.35)]">Stream</span>
+              <span className="text-white">Stream</span>
+              <span className="text-[#c084fc] drop-shadow-[0_0_12px_rgba(192,132,252,0.35)]">18+</span>
             </div>
           </Link>
 

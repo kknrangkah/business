@@ -80,9 +80,9 @@ export const DEFAULT_AD_CONFIG: AdBannerConfig = {
 };
 
 export const DEFAULT_TELEGRAM_CONFIG: TelegramConfig = {
-  channelName: 'Channel Tele KingStream',
-  channelUrl: 'https://t.me/KingStreamOfficial',
-  channelHandle: '@KingStreamOfficial',
+  channelName: 'Channel Tele Stream18+',
+  channelUrl: 'https://t.me/Stream18Official',
+  channelHandle: '@Stream18Official',
 };
 
 const STORAGE_KEYS = {
