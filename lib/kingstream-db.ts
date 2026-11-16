@@ -99,6 +99,8 @@ function mapRowToVideo(row: any): KingStreamVideo {
     playClicks: Number(row.play_clicks) || 0,
     badge: row.badge || undefined,
     description: row.description || '',
+    urlPlayMode: row.badge_type === 'direct' ? 'direct' : 'play',
+    adRedirectUrl: row.ad_redirect_url || '',
     createdAt:
       row.created_at instanceof Date
         ? row.created_at.toISOString()
@@ -274,6 +276,8 @@ export async function upsertVideoInDb(body: Partial<KingStreamVideo>): Promise<{
     playClicks: Number(body.playClicks) || 0,
     badge: body.badge,
     description: body.description || '',
+    urlPlayMode: body.urlPlayMode === 'direct' ? 'direct' : 'play',
+    adRedirectUrl: body.adRedirectUrl || '',
     createdAt: body.createdAt || new Date().toISOString(),
   };
 
@@ -285,10 +289,10 @@ export async function upsertVideoInDb(body: Partial<KingStreamVideo>): Promise<{
       await pool.query(
         `INSERT INTO videos (
           id, title, thumbnail_url, video_url, duration, views, play_clicks,
-          category, badge, description, created_at, updated_at
+          category, badge, badge_type, ad_redirect_url, description, created_at, updated_at
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7,
-          $8, $9, $10, $11, NOW()
+          $8, $9, $10, $11, $12, $13, NOW()
         )
         ON CONFLICT (id) DO UPDATE SET
           title = EXCLUDED.title,
@@ -299,6 +303,8 @@ export async function upsertVideoInDb(body: Partial<KingStreamVideo>): Promise<{
           play_clicks = EXCLUDED.play_clicks,
           category = EXCLUDED.category,
           badge = EXCLUDED.badge,
+          badge_type = EXCLUDED.badge_type,
+          ad_redirect_url = EXCLUDED.ad_redirect_url,
           description = EXCLUDED.description,
           updated_at = NOW()`,
         [
@@ -311,6 +317,8 @@ export async function upsertVideoInDb(body: Partial<KingStreamVideo>): Promise<{
           newVideo.playClicks || 0,
           newVideo.category,
           newVideo.badge || '',
+          newVideo.urlPlayMode || 'play',
+          newVideo.adRedirectUrl || '',
           newVideo.description || '',
           new Date(newVideo.createdAt),
         ]
@@ -394,6 +402,8 @@ export async function updateVideoInDb(
           category = $8,
           badge = $9,
           description = $12,
+          badge_type = $13,
+          ad_redirect_url = $14,
           updated_at = NOW()
         WHERE id = $1
         RETURNING *`,
@@ -410,6 +420,8 @@ export async function updateVideoInDb(
           typeof incrementViews === 'number' ? incrementViews : null,
           typeof incrementPlayClicks === 'number' ? incrementPlayClicks : null,
           merged.description || '',
+          merged.urlPlayMode || 'play',
+          merged.adRedirectUrl || '',
         ]
       );
 

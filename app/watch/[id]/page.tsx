@@ -26,6 +26,7 @@ import {
   formatViews,
   formatTimeAgo,
   getNextRotatingAdUrl,
+  resolveVideoPlayback,
 } from '@/lib/kingstream-storage';
 import { toast } from 'sonner';
 
@@ -164,66 +165,80 @@ function WatchContent({ videoId }: { videoId: string }) {
             onContextMenu={(e) => e.preventDefault()}
             className="relative w-full bg-black flex items-center justify-center shrink-0 overflow-hidden select-none"
           >
+            {/* Overlay Brand Logo Watermark (Top Left) */}
+            <img
+              src="/images/kingstream-logo.png"
+              alt="KingStream 18+"
+              className="absolute top-3 left-3 z-10 w-9 h-9 sm:w-11 sm:h-11 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] pointer-events-none opacity-90"
+            />
+
             {/* Overlay Duration Pill */}
             <div className="absolute top-3 right-3 z-10 bg-black/85 backdrop-blur-md border border-purple-900/50 text-white text-xs font-mono font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-lg pointer-events-none">
               <Clock className="w-3.5 h-3.5 text-purple-400" />
               <span>{currentVideo.duration || '12:45'}</span>
             </div>
 
-            {currentVideo.videoUrl &&
-              (currentVideo.videoUrl.endsWith('.mp4') ||
-                currentVideo.videoUrl.endsWith('.webm') ||
-                currentVideo.videoUrl.startsWith('/uploads/') ||
-                currentVideo.videoUrl.startsWith('data:video') ||
-                currentVideo.videoUrl.startsWith('blob:')) ? (
-              <video
-                src={currentVideo.videoUrl}
-                controls
-                controlsList="nodownload"
-                onContextMenu={(e) => e.preventDefault()}
-                autoPlay
-                className="w-full max-h-[65vh] object-contain"
-                onPlay={triggerAdDirect}
-                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-              />
-            ) : currentVideo.videoUrl &&
-              (currentVideo.videoUrl.includes('youtube.com') ||
-                currentVideo.videoUrl.includes('youtu.be') ||
-                currentVideo.videoUrl.includes('embed')) ? (
-              <div className="aspect-video w-full max-h-[65vh]">
-                <iframe
-                  src={
-                    currentVideo.videoUrl.includes('watch?v=')
-                      ? currentVideo.videoUrl.replace('watch?v=', 'embed/')
-                      : currentVideo.videoUrl
-                  }
-                  title={currentVideo.title}
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            ) : (
-              <div
-                onClick={triggerAdDirect}
-                className="relative w-full h-[360px] sm:h-[440px] flex flex-col items-center justify-center bg-black cursor-pointer select-none"
-              >
-                <img
-                  src={currentVideo.thumbnailUrl}
-                  alt={currentVideo.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-35 blur-xs"
-                />
-                <div className="relative z-10 flex flex-col items-center text-center p-6">
-                  <button className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center mb-3 shadow-2xl shadow-purple-950">
-                    <Play className="w-8 h-8 fill-current ml-1" />
-                  </button>
-                  <span className="text-sm font-bold text-white">Klik Play untuk Memutar Video</span>
-                  <span className="text-xs font-mono text-purple-300 mt-1">
-                    Durasi: {currentVideo.duration || '12:45'}
-                  </span>
+            {(() => {
+              const resolved = resolveVideoPlayback(currentVideo.videoUrl);
+              if (resolved.kind === 'native') {
+                return (
+                  <video
+                    src={resolved.src}
+                    controls
+                    controlsList="nodownload"
+                    onContextMenu={(e) => e.preventDefault()}
+                    autoPlay
+                    playsInline
+                    className="w-full max-h-[65vh] object-contain"
+                    onPlay={triggerAdDirect}
+                    onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                  />
+                );
+              }
+              if (resolved.kind === 'embed') {
+                return (
+                  <div className="relative aspect-video w-full max-h-[65vh] bg-black">
+                    <iframe
+                      src={resolved.src}
+                      title={currentVideo.title}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                      allowFullScreen
+                    />
+                    <a
+                      href={resolved.originalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 bg-purple-600/90 hover:bg-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg transition"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Buka Direct URL Video</span>
+                    </a>
+                  </div>
+                );
+              }
+              return (
+                <div
+                  onClick={triggerAdDirect}
+                  className="relative w-full h-[360px] sm:h-[440px] flex flex-col items-center justify-center bg-black cursor-pointer select-none"
+                >
+                  <img
+                    src={currentVideo.thumbnailUrl}
+                    alt={currentVideo.title}
+                    className="absolute inset-0 w-full h-full object-cover opacity-35 blur-xs"
+                  />
+                  <div className="relative z-10 flex flex-col items-center text-center p-6">
+                    <button className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center mb-3 shadow-2xl shadow-purple-950">
+                      <Play className="w-8 h-8 fill-current ml-1" />
+                    </button>
+                    <span className="text-sm font-bold text-white">Klik Play untuk Memutar Video</span>
+                    <span className="text-xs font-mono text-purple-300 mt-1">
+                      Durasi: {currentVideo.duration || '12:45'}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
 
           {/* Video Metadata & Share Bar */}

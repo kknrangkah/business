@@ -14,6 +14,8 @@ export interface KingStreamVideo {
   badge?: string;
   createdAt: string;
   description?: string;
+  urlPlayMode?: 'play' | 'direct';
+  adRedirectUrl?: string;
 }
 
 export interface AdBannerItem {
@@ -276,4 +278,138 @@ export function formatTimeAgo(isoString: string): string {
   const diffDays = Math.floor(diffHours / 24);
   return `${diffDays} hari yang lalu`;
 }
+
+export interface ResolvedVideoSource {
+  kind: 'native' | 'embed' | 'none';
+  src: string;
+  originalUrl: string;
+}
+
+/**
+ * Resolves any uploaded file path, direct video file URL (.mp4/.webm/.mov),
+ * Videy link (videy.co/v?id=...), YouTube, Google Drive, Doodstream, Streamtape,
+ * or general external video URL into a playable source.
+ */
+export function resolveVideoPlayback(rawUrl?: string): ResolvedVideoSource {
+  if (!rawUrl || !rawUrl.trim()) {
+    return { kind: 'none', src: '', originalUrl: '' };
+  }
+
+  let url = rawUrl.trim();
+
+  // Local uploads, blob, or data URLs -> native HTML5 <video>
+  if (
+    url.startsWith('/uploads/') ||
+    url.startsWith('blob:') ||
+    url.startsWith('data:video')
+  ) {
+    return { kind: 'native', src: url, originalUrl: url };
+  }
+
+  // Ensure external URLs have protocol
+  if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
+    url = 'https://' + url;
+  }
+
+  // Videy.co share URL -> convert to direct MP4 CDN URL so it plays natively in <video>!
+  try {
+    if (url.includes('videy.co/v')) {
+      const parsed = new URL(url);
+      const videyId = parsed.searchParams.get('id');
+      if (videyId) {
+        return {
+          kind: 'native',
+          src: `https://cdn.videy.co/${videyId}.mp4`,
+          originalUrl: url,
+        };
+      }
+    }
+  } catch {}
+
+  // Check if URL path or query points to a direct video file (.mp4, .webm, .mov, .ogg, .m3u8)
+  const cleanUrlWithoutHash = url.split('#')[0].split('?')[0].toLowerCase();
+  if (
+    cleanUrlWithoutHash.endsWith('.mp4') ||
+    cleanUrlWithoutHash.endsWith('.webm') ||
+    cleanUrlWithoutHash.endsWith('.mov') ||
+    cleanUrlWithoutHash.endsWith('.ogg') ||
+    cleanUrlWithoutHash.endsWith('.m3u8') ||
+    url.toLowerCase().includes('.mp4?') ||
+    url.toLowerCase().includes('.webm?') ||
+    url.toLowerCase().includes('cdn.videy.co/')
+  ) {
+    return { kind: 'native', src: url, originalUrl: url };
+  }
+
+  // YouTube watch / youtu.be / shorts -> embed URL
+  try {
+    if (url.includes('youtube.com/watch')) {
+      const parsed = new URL(url);
+      const v = parsed.searchParams.get('v');
+      if (v) {
+        return {
+          kind: 'embed',
+          src: `https://www.youtube.com/embed/${v}?autoplay=1`,
+          originalUrl: url,
+        };
+      }
+    }
+    if (url.includes('youtu.be/')) {
+      const id = url.split('youtu.be/')[1]?.split(/[?#]/)[0];
+      if (id) {
+        return {
+          kind: 'embed',
+          src: `https://www.youtube.com/embed/${id}?autoplay=1`,
+          originalUrl: url,
+        };
+      }
+    }
+    if (url.includes('youtube.com/shorts/')) {
+      const id = url.split('youtube.com/shorts/')[1]?.split(/[?#]/)[0];
+      if (id) {
+        return {
+          kind: 'embed',
+          src: `https://www.youtube.com/embed/${id}?autoplay=1`,
+          originalUrl: url,
+        };
+      }
+    }
+  } catch {}
+
+  // Google Drive file link -> preview embed
+  if (url.includes('drive.google.com/file/d/')) {
+    const match = url.match(/\/file\/d\/([^/]+)/);
+    if (match?.[1]) {
+      return {
+        kind: 'embed',
+        src: `https://drive.google.com/file/d/${match[1]}/preview`,
+        originalUrl: url,
+      };
+    }
+  }
+
+  // Doodstream / Streamtape / general /d/ -> /e/ conversion
+  if ((url.includes('dood') || url.includes('ds2play') || url.includes('d000')) && url.includes('/d/')) {
+    return {
+      kind: 'embed',
+      src: url.replace('/d/', '/e/'),
+      originalUrl: url,
+    };
+  }
+  if (url.includes('streamtape.com/v/')) {
+    return {
+      kind: 'embed',
+      src: url.replace('streamtape.com/v/', 'streamtape.com/e/'),
+      originalUrl: url,
+    };
+  }
+
+  // Any other http/https URL -> embed in iframe + allow direct open
+  return {
+    kind: 'embed',
+    src: url,
+    originalUrl: url,
+  };
+}
+
 

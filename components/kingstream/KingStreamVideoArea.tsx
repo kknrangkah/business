@@ -23,6 +23,7 @@ import {
   formatViews,
   formatTimeAgo,
   getNextRotatingAdUrl,
+  resolveVideoPlayback,
 } from '@/lib/kingstream-storage';
 
 interface KingStreamVideoAreaProps {
@@ -196,13 +197,23 @@ export function KingStreamVideoArea({
       e.stopPropagation();
     }
 
-    // 1. Direct ke link iklan sponsor/promo saat play diklik
-    triggerAdDirect();
-
-    // 2. Increment view count & play button click count secara real-time di server & storage
+    // 1. Increment view count & play button click count secara real-time di server & storage
     const nextViews = (Number(video.views) || 0) + 1;
     const nextPlayClicks = (Number(video.playClicks) || 0) + 1;
     recordVideoPlay(video.id);
+
+    // 2. Jika mode URL video adalah 'direct', langsung arahkan ke URL video tersebut!
+    if (video.urlPlayMode === 'direct' && video.videoUrl?.trim()) {
+      let targetVideoUrl = video.videoUrl.trim();
+      if (!targetVideoUrl.startsWith('http://') && !targetVideoUrl.startsWith('https://') && !targetVideoUrl.startsWith('/')) {
+        targetVideoUrl = 'https://' + targetVideoUrl;
+      }
+      window.open(targetVideoUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      // Direct ke link iklan sponsor/promo saat play diklik
+      triggerAdDirect();
+    }
+
     setSelectedVideo({
       ...video,
       views: nextViews,
@@ -469,74 +480,80 @@ export function KingStreamVideoArea({
                 <span>{selectedVideo.duration || '12:45'}</span>
               </div>
 
-              {selectedVideo.videoUrl &&
-                (selectedVideo.videoUrl.endsWith('.mp4') ||
-                  selectedVideo.videoUrl.endsWith('.webm') ||
-                  selectedVideo.videoUrl.startsWith('/uploads/') ||
-                  selectedVideo.videoUrl.startsWith('data:video') ||
-                  selectedVideo.videoUrl.startsWith('blob:')) ? (
-                <video
-                  src={selectedVideo.videoUrl}
-                  controls
-                  controlsList="nodownload"
-                  onContextMenu={(e) => e.preventDefault()}
-                  autoPlay
-                  className="w-full max-h-[62vh] object-contain"
-                  onPlay={triggerAdDirect}
-                  onTimeUpdate={(e) => {
-                    const videoEl = e.currentTarget;
-                    setCurrentTime(videoEl.currentTime);
-                    if (videoEl.duration && !isNaN(videoEl.duration)) {
-                      setVideoDurationSeconds(videoEl.duration);
-                    }
-                  }}
-                />
-              ) : selectedVideo.videoUrl &&
-                (selectedVideo.videoUrl.includes('youtube.com') ||
-                  selectedVideo.videoUrl.includes('youtu.be') ||
-                  selectedVideo.videoUrl.includes('player') ||
-                  selectedVideo.videoUrl.includes('embed')) ? (
-                <div className="aspect-video w-full max-h-[62vh]">
-                  <iframe
-                    src={
-                      selectedVideo.videoUrl.includes('watch?v=')
-                        ? selectedVideo.videoUrl.replace('watch?v=', 'embed/')
-                        : selectedVideo.videoUrl
-                    }
-                    title={selectedVideo.title}
-                    className="w-full h-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              ) : (
-                /* Interactive Play Click Overlay */
-                <div
-                  onClick={handlePlayerOverlayPlay}
-                  className="relative w-full h-[340px] sm:h-[400px] flex flex-col items-center justify-center bg-black cursor-pointer select-none"
-                >
-                  <img
-                    src={selectedVideo.thumbnailUrl}
-                    alt={selectedVideo.title}
-                    className="absolute inset-0 w-full h-full object-cover opacity-35 blur-xs"
-                  />
-                  <div className="relative z-10 flex flex-col items-center text-center p-6">
-                    <button
-                      onClick={handlePlayerOverlayPlay}
-                      className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 hover:scale-110 active:scale-95 text-white flex items-center justify-center mb-3 shadow-2xl shadow-purple-950 transition-all cursor-pointer"
-                    >
-                      <Play className="w-8 h-8 fill-current ml-1" />
-                    </button>
-                    <span className="text-sm font-bold text-white">
-                      Klik Play untuk Memutar Video
-                    </span>
-                    <span className="text-xs font-mono text-purple-300 mt-1 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-purple-400" />
-                      <span>Durasi Video: {selectedVideo.duration || '12:45'}</span>
-                    </span>
+              {(() => {
+                const resolved = resolveVideoPlayback(selectedVideo.videoUrl);
+                if (resolved.kind === 'native') {
+                  return (
+                    <video
+                      src={resolved.src}
+                      controls
+                      controlsList="nodownload"
+                      onContextMenu={(e) => e.preventDefault()}
+                      autoPlay
+                      playsInline
+                      className="w-full max-h-[62vh] object-contain"
+                      onPlay={triggerAdDirect}
+                      onTimeUpdate={(e) => {
+                        const videoEl = e.currentTarget;
+                        setCurrentTime(videoEl.currentTime);
+                        if (videoEl.duration && !isNaN(videoEl.duration)) {
+                          setVideoDurationSeconds(videoEl.duration);
+                        }
+                      }}
+                    />
+                  );
+                }
+                if (resolved.kind === 'embed') {
+                  return (
+                    <div className="relative aspect-video w-full max-h-[62vh] bg-black">
+                      <iframe
+                        src={resolved.src}
+                        title={selectedVideo.title}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        allowFullScreen
+                      />
+                      <a
+                        href={resolved.originalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 bg-purple-600/90 hover:bg-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-lg transition"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Buka Direct URL Video</span>
+                      </a>
+                    </div>
+                  );
+                }
+                return (
+                  /* Interactive Play Click Overlay */
+                  <div
+                    onClick={handlePlayerOverlayPlay}
+                    className="relative w-full h-[340px] sm:h-[400px] flex flex-col items-center justify-center bg-black cursor-pointer select-none"
+                  >
+                    <img
+                      src={selectedVideo.thumbnailUrl}
+                      alt={selectedVideo.title}
+                      className="absolute inset-0 w-full h-full object-cover opacity-35 blur-xs"
+                    />
+                    <div className="relative z-10 flex flex-col items-center text-center p-6">
+                      <button
+                        onClick={handlePlayerOverlayPlay}
+                        className="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 hover:scale-110 active:scale-95 text-white flex items-center justify-center mb-3 shadow-2xl shadow-purple-950 transition-all cursor-pointer"
+                      >
+                        <Play className="w-8 h-8 fill-current ml-1" />
+                      </button>
+                      <span className="text-sm font-bold text-white">
+                        Klik Play untuk Memutar Video
+                      </span>
+                      <span className="text-xs font-mono text-purple-300 mt-1 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Durasi Video: {selectedVideo.duration || '12:45'}</span>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
             {/* Video Details & Duration Tracker Bar (Without Sponsor Button) */}
