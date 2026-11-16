@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CrownIcon } from '@/components/kingstream/icons/CrownIcon';
-import { Lock, User, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft, Sparkles } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAdminSession, setAdminSession } from '@/lib/kingstream-storage';
 
@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
 
     setIsLoading(true);
 
-    // Verify credentials (default: admin / admin123 or flexible)
+    // Verify credentials
     setTimeout(() => {
       const validUsername = username.trim().toLowerCase();
       if ((validUsername === 'admin' && password === 'admin123') || (validUsername === 'admin' && password === 'admin')) {
@@ -54,17 +54,10 @@ export default function AdminLoginPage() {
         router.push('/admin/dashboard');
       } else {
         setIsLoading(false);
-        setErrorMsg('Username atau password salah! Gunakan: admin / admin123');
+        setErrorMsg('Username atau password salah!');
         toast.error('Kredensial tidak valid');
       }
     }, 600);
-  };
-
-  const handleQuickFill = () => {
-    setUsername('admin');
-    setPassword('admin123');
-    setErrorMsg('');
-    toast.info('Akun demo berhasil diisi: admin / admin123');
   };
 
   return (
@@ -107,7 +100,7 @@ export default function AdminLoginPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-slate-400 mt-2">
-              Masuk untuk upload video, kelola konten, dan atur link banner promo/iklan
+              Masuk untuk mengakses panel kontrol administrator
             </p>
           </div>
 
@@ -134,7 +127,7 @@ export default function AdminLoginPage() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Masukkan username (cth: admin)"
+                  placeholder="Masukkan username"
                   className="w-full bg-[#0D061A] border border-[#2e1d52] focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition"
                   required
                 />
@@ -179,15 +172,6 @@ export default function AdminLoginPage() {
                 />
                 <span>Ingat sesi saya</span>
               </label>
-
-              <button
-                type="button"
-                onClick={handleQuickFill}
-                className="text-purple-400 hover:text-purple-300 transition underline flex items-center gap-1 cursor-pointer"
-              >
-                <Sparkles className="w-3 h-3" />
-                <span>Isi Demo (admin/admin123)</span>
-              </button>
             </div>
 
             {/* Submit Button */}
@@ -209,13 +193,6 @@ export default function AdminLoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Info Box */}
-          <div className="mt-6 p-3 bg-purple-950/20 border border-purple-800/30 rounded-xl text-xs text-slate-400 space-y-1">
-            <div className="font-semibold text-slate-300">🔑 Kredensial Default Admin:</div>
-            <div>Username: <span className="text-purple-300 font-mono">admin</span></div>
-            <div>Password: <span className="text-purple-300 font-mono">admin123</span></div>
-          </div>
         </div>
       </main>
 
@@ -226,4 +203,3 @@ export default function AdminLoginPage() {
     </div>
   );
 }
-
