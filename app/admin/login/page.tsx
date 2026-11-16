@@ -87,8 +87,12 @@ export default function AdminLoginPage() {
         <div className="w-full max-w-md bg-[#130A24]/90 backdrop-blur-xl border border-[#2e1d52] rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/60 animate-in fade-in zoom-in-95 duration-200">
           {/* Logo & Heading */}
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-[#6b21a8] to-[#9333ea] text-white shadow-lg shadow-purple-950/60 mb-3">
-              <CrownIcon className="w-6 h-6 text-white" />
+            <div className="inline-flex items-center justify-center w-16 h-16 mb-2">
+              <img
+                src="/images/kingstream-logo.png"
+                alt="KingStream 18+"
+                className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(168,85,247,0.65)]"
+              />
             </div>
 
             <div className="flex items-baseline justify-center font-bold text-2xl tracking-tight">

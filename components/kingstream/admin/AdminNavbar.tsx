@@ -3,8 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CrownIcon } from '@/components/kingstream/icons/CrownIcon';
-import { ExternalLink, LogOut, ShieldCheck, User } from 'lucide-react';
+import { ExternalLink, LogOut, User } from 'lucide-react';
 import { clearAdminSession, AdminUser } from '@/lib/kingstream-storage';
 import { toast } from 'sonner';
 
@@ -28,10 +27,12 @@ export function AdminNavbar({ user }: AdminNavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand / Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#6b21a8] to-[#9333ea] flex items-center justify-center text-white shadow-md shadow-purple-950/60">
-              <CrownIcon className="w-5 h-5 text-white" />
-            </div>
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/images/kingstream-logo.png"
+              alt="KingStream 18+"
+              className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.55)]"
+            />
 
             <div className="flex items-baseline">
               <span className="text-white font-bold text-xl">King</span>
@@ -77,4 +78,3 @@ export function AdminNavbar({ user }: AdminNavbarProps) {
     </header>
   );
 }
-

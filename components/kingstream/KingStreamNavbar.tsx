@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { CrownIcon } from './icons/CrownIcon';
 import { Menu, X } from 'lucide-react';
 
 export const NAV_ITEMS = [
@@ -32,12 +31,14 @@ export function KingStreamNavbar({ activeTab, onSelectTab }: KingStreamNavbarPro
           <Link
             href="/"
             onClick={() => onSelectTab('Home')}
-            className="flex items-center gap-3 group select-none transition-transform active:scale-98"
+            className="flex items-center gap-2.5 group select-none transition-transform active:scale-98"
           >
-            {/* Purple Circle Crown Badge */}
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#6b21a8] to-[#9333ea] flex items-center justify-center text-white shadow-md shadow-purple-950/50 group-hover:from-[#7e22ce] group-hover:to-[#a855f7] transition-all">
-              <CrownIcon className="w-5 h-5 text-white drop-shadow" />
-            </div>
+            {/* Custom 18+ Brand Logo */}
+            <img
+              src="/images/kingstream-logo.png"
+              alt="KingStream 18+ Logo"
+              className="w-10 h-10 sm:w-11 sm:h-11 object-contain drop-shadow-[0_0_12px_rgba(168,85,247,0.55)] group-hover:scale-105 transition-transform"
+            />
 
             {/* Brand Title: King (White) Stream (Purple) */}
             <div className="flex items-baseline font-bold text-xl sm:text-2xl tracking-tight">
@@ -109,4 +110,3 @@ export function KingStreamNavbar({ activeTab, onSelectTab }: KingStreamNavbarPro
     </header>
   );
 }
-

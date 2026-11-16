@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CrownIcon } from './icons/CrownIcon';
 import { Send, Check, X, ExternalLink } from 'lucide-react';
 import { useKingStream } from './KingStreamContext';
 
@@ -28,13 +27,17 @@ export function KingStreamFloatingButton() {
           {telegramConfig.channelName || 'Channel Tele KingStream'}
         </button>
 
-        {/* Purple Circle Crown Button */}
+        {/* Custom 18+ Brand Logo Button */}
         <button
           onClick={() => setShowModal(true)}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-[#6b21a8] to-[#9333ea] hover:from-[#7e22ce] hover:to-[#a855f7] flex items-center justify-center text-white shadow-xl shadow-purple-950/60 hover:scale-105 active:scale-95 transition-all duration-150 cursor-pointer"
+          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#150B2A]/90 border border-purple-600/50 hover:border-purple-400 flex items-center justify-center p-1 shadow-xl shadow-purple-950/70 hover:scale-105 active:scale-95 transition-all duration-150 cursor-pointer"
           aria-label="Open Telegram Channel"
         >
-          <CrownIcon className="w-5 h-5 text-white drop-shadow" />
+          <img
+            src="/images/kingstream-logo.png"
+            alt="KingStream 18+"
+            className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]"
+          />
         </button>
       </div>
 
@@ -49,11 +52,18 @@ export function KingStreamFloatingButton() {
               <X className="w-5 h-5" />
             </button>
 
-            <div className="w-14 h-14 mx-auto rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white mb-4 shadow-lg shadow-sky-900/40">
-              <Send className="w-7 h-7 -translate-x-0.5 translate-y-0.5" />
+            <div className="w-16 h-16 mx-auto flex items-center justify-center mb-3">
+              <img
+                src="/images/kingstream-logo.png"
+                alt="KingStream 18+"
+                className="w-full h-full object-contain drop-shadow-[0_0_14px_rgba(168,85,247,0.65)]"
+              />
             </div>
 
-            <h4 className="text-lg font-bold text-white">Join Channel Telegram</h4>
+            <h4 className="text-lg font-bold text-white flex items-center justify-center gap-1.5">
+              <Send className="w-4 h-4 text-sky-400" />
+              <span>Join Channel Telegram</span>
+            </h4>
             <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
               Dapatkan link video terbaru, notifikasi update harian, dan bocoran konten eksklusif di channel resmi kami!
             </p>

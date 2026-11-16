@@ -333,6 +333,13 @@ export function KingStreamVideoArea({
                     <span>{video.duration || '00:00'}</span>
                   </div>
 
+                  {/* Brand Watermark Logo in Bottom-Left of Every Video Card */}
+                  <img
+                    src="/images/kingstream-logo.png"
+                    alt="18+"
+                    className="absolute bottom-1.5 left-2 w-7 h-7 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] pointer-events-none"
+                  />
+
                   {/* Optional Tag Badge */}
                   {video.badge && (
                     <div className="absolute top-2 left-2 bg-gradient-to-r from-red-600 to-rose-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow">
@@ -449,6 +456,13 @@ export function KingStreamVideoArea({
               onContextMenu={(e) => e.preventDefault()}
               className="relative w-full bg-black flex items-center justify-center shrink-0 overflow-hidden select-none"
             >
+              {/* Overlay Brand Logo Watermark (Top Left) */}
+              <img
+                src="/images/kingstream-logo.png"
+                alt="KingStream 18+"
+                className="absolute top-3 left-3 z-10 w-9 h-9 sm:w-11 sm:h-11 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] pointer-events-none opacity-90"
+              />
+
               {/* Overlay Duration Pill (Top Right) */}
               <div className="absolute top-3 right-3 z-10 bg-black/85 backdrop-blur-md border border-purple-900/50 text-white text-xs font-mono font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-lg pointer-events-none">
                 <Clock className="w-3.5 h-3.5 text-purple-400" />
