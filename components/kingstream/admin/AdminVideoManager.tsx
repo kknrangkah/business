@@ -32,6 +32,7 @@ import {
   resolveVideoPlayback,
   getSameOriginVideoForCapture,
   getAutoThumbnailFromVideoUrl,
+  isPlaceholderThumbnail,
 } from '@/lib/kingstream-storage';
 import { VideoThumbnail } from '../VideoThumbnail';
 import { toast } from 'sonner';
@@ -469,6 +470,21 @@ export function AdminVideoManager() {
       getAutoThumbnailFromVideoUrl(videoUrl.trim()) ||
       '';
 
+    // Jika URL video masih belum punya thumbnail (misal user langsung klik Simpan tanpa menunggu debounce), tarik metadata sekarang
+    if ((!finalThumb || isPlaceholderThumbnail(finalThumb)) && videoUrl.trim().startsWith('http')) {
+      try {
+        toast.info('Mengambil thumbnail dari URL video...');
+        const metaRes = await fetch(
+          `/api/kingstream/video-meta?url=${encodeURIComponent(videoUrl.trim())}`,
+          { cache: 'no-store' }
+        );
+        const meta = await metaRes.json();
+        if (meta?.thumbnailUrl) {
+          finalThumb = meta.thumbnailUrl;
+        }
+      } catch {}
+    }
+
     if (finalThumb.startsWith('data:image/')) {
       finalThumb = await uploadDataUrlAsThumbnail(finalThumb);
     }
@@ -498,6 +514,34 @@ export function AdminVideoManager() {
     lastResolvedUrlRef.current = '';
     setCapturedFrames([]);
     setShowUploadForm(false);
+  };
+
+  // Tarik ulang thumbnail dari URL video untuk video yang sudah ada di tabel atau sedang diedit
+  const handleExtractThumbForExistingVideo = async (video: KingStreamVideo, updateInEditModal = false) => {
+    if (!video.videoUrl?.trim()) {
+      toast.error('URL video kosong');
+      return;
+    }
+    try {
+      toast.info(`Mengekstrak thumbnail dari URL "${video.title}"...`);
+      const res = await fetch(
+        `/api/kingstream/video-meta?url=${encodeURIComponent(video.videoUrl.trim())}`,
+        { cache: 'no-store' }
+      );
+      const data = await res.json();
+      if (data?.thumbnailUrl) {
+        if (updateInEditModal) {
+          setEditingVideo((prev) => (prev ? { ...prev, thumbnailUrl: data.thumbnailUrl } : prev));
+        } else {
+          updateVideo(video.id, { thumbnailUrl: data.thumbnailUrl });
+        }
+        toast.success('Thumbnail berhasil diekstrak dari URL video!');
+      } else {
+        toast.warning('Thumbnail tidak ditemukan di halaman URL tersebut.');
+      }
+    } catch {
+      toast.error('Gagal mengekstrak thumbnail dari URL');
+    }
   };
 
   const handleGenerateSampleVideos = () => {
@@ -1185,6 +1229,18 @@ export function AdminVideoManager() {
                     {/* Aksi Buttons */}
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {/* Quick Extract Thumbnail Button for External URL Videos using placeholder */}
+                        {video.videoUrl?.startsWith('http') && isPlaceholderThumbnail(video.thumbnailUrl) && (
+                          <button
+                            onClick={() => handleExtractThumbForExistingVideo(video, false)}
+                            className="px-2 py-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 hover:text-white border border-amber-700/40 transition cursor-pointer inline-flex items-center gap-1 text-[11px] font-semibold"
+                            title="Ambil Thumbnail Otomatis dari URL Video Ini"
+                          >
+                            <ImageIcon className="w-3.5 h-3.5" />
+                            <span>Ambil Thumb</span>
+                          </button>
+                        )}
+
                         {/* Copy Watch URL */}
                         <button
                           onClick={() => handleCopyWatchUrl(video)}
@@ -1271,13 +1327,25 @@ export function AdminVideoManager() {
                   <label className="block text-xs font-bold text-purple-200 mb-1">
                     URL Video (Play / Direct URL)
                   </label>
-                  <input
-                    type="text"
-                    value={editingVideo.videoUrl}
-                    onChange={(e) => setEditingVideo({ ...editingVideo, videoUrl: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full bg-[#130A24] border border-purple-700/60 rounded-lg px-3 py-2 text-xs text-white font-mono"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={editingVideo.videoUrl}
+                      onChange={(e) => setEditingVideo({ ...editingVideo, videoUrl: e.target.value })}
+                      placeholder="https://..."
+                      className="flex-1 bg-[#130A24] border border-purple-700/60 rounded-lg px-3 py-2 text-xs text-white font-mono"
+                    />
+                    {editingVideo.videoUrl?.startsWith('http') && (
+                      <button
+                        type="button"
+                        onClick={() => handleExtractThumbForExistingVideo(editingVideo, true)}
+                        className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold cursor-pointer shrink-0 transition"
+                        title="Ekstrak Thumbnail dari URL Ini"
+                      >
+                        📸 Ambil Thumb URL
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
