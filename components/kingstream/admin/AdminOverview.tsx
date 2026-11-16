@@ -22,6 +22,7 @@ import {
   formatTimeAgo,
   getActiveAdItems,
 } from '@/lib/kingstream-storage';
+import { VideoThumbnail } from '../VideoThumbnail';
 
 interface AdminOverviewProps {
   onNavigateTab: (tab: 'video' | 'ads' | 'telegram') => void;
@@ -224,9 +225,8 @@ export function AdminOverview({ onNavigateTab }: AdminOverviewProps) {
               {videos.slice(0, 6).map((v) => (
                 <div key={v.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={v.thumbnailUrl}
-                      alt={v.title}
+                    <VideoThumbnail
+                      video={v}
                       className="w-14 h-9 rounded-md object-cover bg-black/60 shrink-0 border border-purple-900/40"
                     />
                     <div className="min-w-0">

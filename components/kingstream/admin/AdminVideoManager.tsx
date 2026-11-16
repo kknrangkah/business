@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Upload,
   Film,
@@ -30,7 +30,10 @@ import {
   formatNumber,
   formatTimeAgo,
   resolveVideoPlayback,
+  getSameOriginVideoForCapture,
+  getAutoThumbnailFromVideoUrl,
 } from '@/lib/kingstream-storage';
+import { VideoThumbnail } from '../VideoThumbnail';
 import { toast } from 'sonner';
 
 const CATEGORIES: VideoCategory[] = [
@@ -68,11 +71,13 @@ export function AdminVideoManager() {
   const [videoUrl, setVideoUrl] = useState('');
   const [urlPlayMode, setUrlPlayMode] = useState<'play' | 'direct'>('play');
   const [localVideoPreviewUrl, setLocalVideoPreviewUrl] = useState('');
+  const [resolvedCaptureVideoUrl, setResolvedCaptureVideoUrl] = useState('');
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [isGeneratingThumb, setIsGeneratingThumb] = useState(false);
   const [capturedFrames, setCapturedFrames] = useState<CapturedFrame[]>([]);
   const [videoDurationSec, setVideoDurationSec] = useState<number>(0);
   const [scrubTimeSec, setScrubTimeSec] = useState<number>(1);
+  const lastResolvedUrlRef = useRef<string>('');
 
   const customScrubVideoRef = useRef<HTMLVideoElement | null>(null);
   const editScrubVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -116,96 +121,180 @@ export function AdminVideoManager() {
     return dataUrl;
   };
 
-  // Extract 4 frames automatically from a video source (12%, 35%, 60%, 82%)
-  const extractFramesFromVideoSource = (rawSourceUrl: string) => {
-    const resolved = resolveVideoPlayback(rawSourceUrl);
-    const srcUrl = resolved.kind === 'native' ? resolved.src : rawSourceUrl;
+  // Extract 4 frames automatically from an uploaded video OR external video URL (proxied same-origin to avoid CORS)
+  const extractFramesFromVideoSource = useCallback(
+    (rawSourceUrl: string, silent = false) => {
+      const sameOriginSrc =
+        rawSourceUrl.startsWith('blob:') ||
+        rawSourceUrl.startsWith('/uploads/') ||
+        rawSourceUrl.startsWith('/api/')
+          ? rawSourceUrl
+          : getSameOriginVideoForCapture(rawSourceUrl) ||
+            `/api/kingstream/video-proxy?url=${encodeURIComponent(rawSourceUrl)}`;
 
-    setIsGeneratingThumb(true);
-    setCapturedFrames([]);
+      setResolvedCaptureVideoUrl(sameOriginSrc);
+      setIsGeneratingThumb(true);
+      setCapturedFrames([]);
 
-    const tempVideo = document.createElement('video');
-    tempVideo.preload = 'auto';
-    tempVideo.muted = true;
-    tempVideo.playsInline = true;
-    tempVideo.crossOrigin = 'anonymous';
-    tempVideo.src = srcUrl;
+      const tempVideo = document.createElement('video');
+      tempVideo.preload = 'auto';
+      tempVideo.muted = true;
+      tempVideo.playsInline = true;
+      tempVideo.src = sameOriginSrc;
 
-    const frames: CapturedFrame[] = [];
-    const percentages = [0.12, 0.35, 0.6, 0.82];
-    let currentIdx = 0;
+      const frames: CapturedFrame[] = [];
+      const percentages = [0.12, 0.35, 0.6, 0.82];
+      let currentIdx = 0;
 
-    const captureFrameAtCurrentTime = (): string | null => {
-      try {
-        const vw = tempVideo.videoWidth || 640;
-        const vh = tempVideo.videoHeight || 360;
-        const targetW = Math.min(800, vw);
-        const targetH = Math.round((targetW / vw) * vh) || 360;
-        const canvas = document.createElement('canvas');
-        canvas.width = targetW;
-        canvas.height = targetH;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return null;
-        ctx.drawImage(tempVideo, 0, 0, targetW, targetH);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        return dataUrl && dataUrl.length > 200 ? dataUrl : null;
-      } catch {
-        return null;
-      }
-    };
-
-    const seekNext = () => {
-      const totalDur = tempVideo.duration || 0;
-      if (currentIdx >= percentages.length || totalDur <= 0) {
-        setIsGeneratingThumb(false);
-        if (frames.length > 0) {
-          setCapturedFrames(frames);
-          const chosen = frames[0];
-          setThumbnailUrl(chosen.dataUrl);
-          uploadDataUrlAsThumbnail(chosen.dataUrl).then((uploadedUrl) => {
-            setThumbnailUrl(uploadedUrl);
-          });
-          toast.success('Thumbnail otomatis berhasil diambil dari potongan video!');
+      const captureFrameAtCurrentTime = (): string | null => {
+        try {
+          const vw = tempVideo.videoWidth || 640;
+          const vh = tempVideo.videoHeight || 360;
+          const targetW = Math.min(800, vw);
+          const targetH = Math.round((targetW / vw) * vh) || 360;
+          const canvas = document.createElement('canvas');
+          canvas.width = targetW;
+          canvas.height = targetH;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return null;
+          ctx.drawImage(tempVideo, 0, 0, targetW, targetH);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          return dataUrl && dataUrl.length > 200 ? dataUrl : null;
+        } catch {
+          return null;
         }
+      };
+
+      const seekNext = () => {
+        const totalDur = tempVideo.duration || 0;
+        if (currentIdx >= percentages.length || totalDur <= 0) {
+          setIsGeneratingThumb(false);
+          if (frames.length > 0) {
+            setCapturedFrames(frames);
+            const chosen = frames[0];
+            setThumbnailUrl(chosen.dataUrl);
+            uploadDataUrlAsThumbnail(chosen.dataUrl).then((uploadedUrl) => {
+              setThumbnailUrl(uploadedUrl);
+            });
+            if (!silent) {
+              toast.success('Thumbnail otomatis berhasil diambil dari potongan video!');
+            }
+          }
+          return;
+        }
+
+        const targetSec = Math.max(0.2, Math.min(totalDur - 0.1, totalDur * percentages[currentIdx]));
+        tempVideo.currentTime = targetSec;
+      };
+
+      tempVideo.onloadedmetadata = () => {
+        const sec = Math.floor(tempVideo.duration || 0);
+        setVideoDurationSec(sec || 10);
+        setScrubTimeSec(Math.min(2, Math.max(0.5, (tempVideo.duration || 2) * 0.2)));
+        if (sec > 0) {
+          const formattedDur = formatSecToMMSS(sec);
+          setDuration(formattedDur);
+        }
+        seekNext();
+      };
+
+      tempVideo.onseeked = () => {
+        const dataUrl = captureFrameAtCurrentTime();
+        if (dataUrl) {
+          const t = tempVideo.currentTime;
+          frames.push({
+            timeSec: t,
+            label: formatSecToMMSS(t),
+            dataUrl,
+          });
+          // Immediately show first captured frame as active thumbnail while remaining frames finish
+          if (frames.length === 1) {
+            setThumbnailUrl(dataUrl);
+          }
+        }
+        currentIdx += 1;
+        seekNext();
+      };
+
+      tempVideo.onerror = () => {
+        setIsGeneratingThumb(false);
+      };
+
+      tempVideo.load();
+    },
+    []
+  );
+
+  // Resolve any external video URL (Videy, MP4, YouTube, Drive, or webpage with og:video / og:image)
+  const resolveThumbnailFromVideoUrl = useCallback(
+    async (rawUrl: string, silent = false) => {
+      const cleaned = rawUrl.trim();
+      if (!cleaned) return;
+
+      lastResolvedUrlRef.current = cleaned;
+      setIsGeneratingThumb(true);
+      setCapturedFrames([]);
+      setResolvedCaptureVideoUrl('');
+
+      // Quick local resolution first for YouTube/Drive
+      const quickThumb = getAutoThumbnailFromVideoUrl(cleaned);
+      if (quickThumb) {
+        setThumbnailUrl(quickThumb);
+      }
+
+      const resolved = resolveVideoPlayback(cleaned);
+      if (resolved.kind === 'native' && resolved.src) {
+        extractFramesFromVideoSource(resolved.src, silent);
         return;
       }
 
-      const targetSec = Math.max(0.2, Math.min(totalDur - 0.1, totalDur * percentages[currentIdx]));
-      tempVideo.currentTime = targetSec;
-    };
+      try {
+        const res = await fetch(
+          `/api/kingstream/video-meta?url=${encodeURIComponent(cleaned)}`,
+          { cache: 'no-store' }
+        );
+        const data = await res.json();
 
-    tempVideo.onloadedmetadata = () => {
-      const sec = Math.floor(tempVideo.duration || 0);
-      setVideoDurationSec(sec || 10);
-      setScrubTimeSec(Math.min(2, Math.max(0.5, (tempVideo.duration || 2) * 0.2)));
-      if (sec > 0) {
-        const formattedDur = formatSecToMMSS(sec);
-        setDuration(formattedDur);
-        toast.info(`Durasi video terdeteksi: ${formattedDur}`);
+        if (data?.title && !title.trim()) {
+          setTitle(String(data.title).slice(0, 140));
+        }
+
+        if (data?.directVideoUrl) {
+          extractFramesFromVideoSource(data.directVideoUrl, silent);
+          return;
+        }
+
+        if (data?.thumbnailUrl) {
+          setThumbnailUrl(data.thumbnailUrl);
+          if (!silent) {
+            toast.success('Thumbnail otomatis berhasil diambil dari URL video!');
+          }
+        } else if (!silent) {
+          toast.info('URL video berupa halaman embed tanpa frame langsung. Anda dapat upload gambar thumbnail manual jika diperlukan.');
+        }
+      } catch {
+        // Fallback silently if offline
+      } finally {
+        setIsGeneratingThumb(false);
       }
-      seekNext();
-    };
+    },
+    [extractFramesFromVideoSource, title]
+  );
 
-    tempVideo.onseeked = () => {
-      const dataUrl = captureFrameAtCurrentTime();
-      if (dataUrl) {
-        const t = tempVideo.currentTime;
-        frames.push({
-          timeSec: t,
-          label: formatSecToMMSS(t),
-          dataUrl,
-        });
-      }
-      currentIdx += 1;
-      seekNext();
-    };
+  // Auto-resolve thumbnail whenever admin pastes or types an external video URL
+  useEffect(() => {
+    if (!showUploadForm || videoMode !== 'url') return;
+    const trimmed = videoUrl.trim();
+    if (!trimmed || trimmed.length < 8) return;
+    if (!trimmed.includes('.') && !trimmed.startsWith('/uploads/')) return;
+    if (trimmed === lastResolvedUrlRef.current) return;
 
-    tempVideo.onerror = () => {
-      setIsGeneratingThumb(false);
-    };
+    const timer = setTimeout(() => {
+      resolveThumbnailFromVideoUrl(trimmed, true);
+    }, 750);
 
-    tempVideo.load();
-  };
+    return () => clearTimeout(timer);
+  }, [showUploadForm, videoMode, videoUrl, resolveThumbnailFromVideoUrl]);
 
   // Manual capture from the interactive video scrubber in Upload Form
   const handleCaptureCurrentScrubFrame = async () => {
@@ -356,7 +445,7 @@ export function AdminVideoManager() {
     toast.success(`URL Video berhasil disalin: ${shareUrl}`);
   };
 
-  const handleSubmitUpload = (e: React.FormEvent) => {
+  const handleSubmitUpload = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isUploadingFile) {
@@ -374,7 +463,15 @@ export function AdminVideoManager() {
       return;
     }
 
-    const finalThumb = thumbnailUrl || capturedFrames[0]?.dataUrl || DEFAULT_FALLBACK_THUMB;
+    let finalThumb =
+      thumbnailUrl ||
+      capturedFrames[0]?.dataUrl ||
+      getAutoThumbnailFromVideoUrl(videoUrl.trim()) ||
+      '';
+
+    if (finalThumb.startsWith('data:image/')) {
+      finalThumb = await uploadDataUrlAsThumbnail(finalThumb);
+    }
 
     const newVideo = addVideo({
       title: title.trim(),
@@ -382,7 +479,7 @@ export function AdminVideoManager() {
       duration: duration.trim() || '01:00',
       views: Number(views) || 0,
       badge: badge || undefined,
-      thumbnailUrl: finalThumb,
+      thumbnailUrl: finalThumb || DEFAULT_FALLBACK_THUMB,
       videoUrl: videoUrl.trim(),
       urlPlayMode,
     });
@@ -397,6 +494,8 @@ export function AdminVideoManager() {
     setVideoUrl('');
     setUrlPlayMode('play');
     setLocalVideoPreviewUrl('');
+    setResolvedCaptureVideoUrl('');
+    lastResolvedUrlRef.current = '';
     setCapturedFrames([]);
     setShowUploadForm(false);
   };
@@ -472,9 +571,10 @@ export function AdminVideoManager() {
 
   const activePreviewResolved = resolveVideoPlayback(localVideoPreviewUrl || videoUrl);
   const activePreviewVideoSrc =
-    activePreviewResolved.kind === 'native'
-      ? activePreviewResolved.src
-      : localVideoPreviewUrl || videoUrl;
+    resolvedCaptureVideoUrl ||
+    getSameOriginVideoForCapture(localVideoPreviewUrl || videoUrl) ||
+    (activePreviewResolved.kind === 'native' ? activePreviewResolved.src : '');
+  const canScrubPreviewVideo = Boolean(activePreviewVideoSrc);
 
   return (
     <div className="space-y-6">
@@ -583,7 +683,7 @@ export function AdminVideoManager() {
                             toast.error('Masukkan URL video terlebih dahulu');
                             return;
                           }
-                          extractFramesFromVideoSource(videoUrl.trim());
+                          resolveThumbnailFromVideoUrl(videoUrl.trim(), false);
                           toast.info('Memuat video & mengambil potongan thumbnail dari URL...');
                         }}
                         className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl cursor-pointer shrink-0 shadow"
@@ -741,7 +841,7 @@ export function AdminVideoManager() {
                           )
                         )}
 
-                        {activePreviewResolved.kind === 'native' && (
+                        {canScrubPreviewVideo && (
                           <div className="bg-[#130A24] border border-purple-800/50 rounded-xl p-3.5 space-y-3">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <span className="text-xs font-bold text-purple-200 flex items-center gap-1.5">
@@ -765,7 +865,6 @@ export function AdminVideoManager() {
                                   src={activePreviewVideoSrc}
                                   muted
                                   playsInline
-                                  crossOrigin="anonymous"
                                   onLoadedMetadata={(e) => {
                                     const dur = e.currentTarget.duration || 10;
                                     setVideoDurationSec(dur);
@@ -1025,9 +1124,8 @@ export function AdminVideoManager() {
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <div className="relative w-20 h-12 shrink-0 rounded-lg overflow-hidden bg-black/60 border border-purple-900/30">
-                          <img
-                            src={video.thumbnailUrl || DEFAULT_FALLBACK_THUMB}
-                            alt={video.title}
+                          <VideoThumbnail
+                            video={video}
                             className="w-full h-full object-cover"
                           />
                           {video.badge && (
@@ -1231,10 +1329,9 @@ export function AdminVideoManager() {
                     <div className="aspect-video bg-black rounded-lg overflow-hidden border border-purple-900/50">
                       <video
                         ref={editScrubVideoRef}
-                        src={resolveVideoPlayback(editingVideo.videoUrl).src}
+                        src={getSameOriginVideoForCapture(editingVideo.videoUrl)}
                         muted
                         playsInline
-                        crossOrigin="anonymous"
                         onLoadedMetadata={(e) => {
                           setEditVideoDurationSec(e.currentTarget.duration || 10);
                           e.currentTarget.currentTime = Math.min(1.5, (e.currentTarget.duration || 2) / 3);

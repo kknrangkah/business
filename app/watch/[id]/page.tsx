@@ -20,6 +20,7 @@ import { KingStreamNavbar, NavItem } from '@/components/kingstream/KingStreamNav
 import { KingStreamFooter } from '@/components/kingstream/KingStreamFooter';
 import { KingStreamFloatingButton } from '@/components/kingstream/KingStreamFloatingButton';
 import { KingStreamPromoBanner } from '@/components/kingstream/KingStreamPromoBanner';
+import { VideoThumbnail } from '@/components/kingstream/VideoThumbnail';
 import { KingStreamProvider, useKingStream } from '@/components/kingstream/KingStreamContext';
 import {
   KingStreamVideo,
@@ -341,9 +342,8 @@ function WatchContent({ videoId }: { videoId: string }) {
                   className="group bg-[#130A24] border border-[#2b1848] hover:border-purple-600/60 rounded-xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-950/40 cursor-pointer flex flex-col"
                 >
                   <div className="relative aspect-video w-full overflow-hidden bg-black/60">
-                    <img
-                      src={rec.thumbnailUrl}
-                      alt={rec.title}
+                    <VideoThumbnail
+                      video={rec}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
 

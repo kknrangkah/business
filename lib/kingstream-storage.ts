@@ -412,4 +412,72 @@ export function resolveVideoPlayback(rawUrl?: string): ResolvedVideoSource {
   };
 }
 
+export function isPlaceholderThumbnail(thumbUrl?: string): boolean {
+  if (!thumbUrl || !thumbUrl.trim()) return true;
+  const trimmed = thumbUrl.trim();
+  return (
+    trimmed.includes('photo-1516450360452-9312f5e86fc7') ||
+    trimmed === '/images/video-placeholder.png'
+  );
+}
+
+/**
+ * Derives an automatic image thumbnail URL for YouTube / Google Drive video URLs.
+ */
+export function getAutoThumbnailFromVideoUrl(rawUrl?: string): string | null {
+  if (!rawUrl || !rawUrl.trim()) return null;
+  let url = rawUrl.trim();
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    if (host.includes('youtu.be')) {
+      const id = parsed.pathname.split('/').filter(Boolean)[0];
+      if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+    if (host.includes('youtube.com')) {
+      let id: string | null = null;
+      if (parsed.pathname.startsWith('/shorts/')) {
+        id = parsed.pathname.split('/shorts/')[1]?.split('/')[0] || null;
+      } else if (parsed.pathname.startsWith('/embed/')) {
+        id = parsed.pathname.split('/embed/')[1]?.split('/')[0] || null;
+      } else {
+        id = parsed.searchParams.get('v');
+      }
+      if (id) return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+    if (url.includes('drive.google.com/file/d/')) {
+      const match = url.match(/\/file\/d\/([^/]+)/);
+      if (match?.[1]) {
+        return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
+      }
+    }
+  } catch {}
+
+  return null;
+}
+
+/**
+ * Returns a same-origin URL suitable for <video> + <canvas> frame capture without CORS errors.
+ */
+export function getSameOriginVideoForCapture(rawUrl?: string): string {
+  const resolved = resolveVideoPlayback(rawUrl);
+  if (resolved.kind !== 'native' || !resolved.src) return '';
+  if (
+    resolved.src.startsWith('/uploads/') ||
+    resolved.src.startsWith('blob:') ||
+    resolved.src.startsWith('data:video')
+  ) {
+    return resolved.src;
+  }
+  if (resolved.src.startsWith('http://') || resolved.src.startsWith('https://')) {
+    return `/api/kingstream/video-proxy?url=${encodeURIComponent(resolved.src)}`;
+  }
+  return resolved.src;
+}
+
+
 
