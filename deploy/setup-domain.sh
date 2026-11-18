@@ -30,3 +30,4 @@ certbot --nginx -d "${DOMAIN}" --non-interactive --agree-tos --register-unsafely
 
 systemctl reload nginx
 echo "Selesai! Website aktif di https://${DOMAIN}"
+
