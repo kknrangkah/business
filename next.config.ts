@@ -9,6 +9,8 @@ const backendUrl =
 const nextConfig: NextConfig = {
   output: 'standalone',
   allowedDevOrigins: [
+    'stream18plus.my.id',
+    '*.stream18plus.my.id',
     '*.lhr.life',
     '*.trycloudflare.com',
     '*.devtunnels.ms',

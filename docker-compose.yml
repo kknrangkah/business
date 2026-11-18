@@ -32,6 +32,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - NEXT_PUBLIC_APP_NAME=Stream18+
+      - NEXT_PUBLIC_FRONTEND_URL=https://stream18plus.my.id
       - DATABASE_URL=postgresql://kingstream:kingstream123@postgres:5432/kingstream_db
     volumes:
       - ./data:/app/data

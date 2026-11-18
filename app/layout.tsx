@@ -19,8 +19,17 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://stream18plus.my.id'),
   title: 'Stream18+ - Nonton Video Terbaru 2026',
   description: 'Stream18+ adalah situs streaming video viral, koleksi terbaru, dan video terupdate setiap hari.',
+  openGraph: {
+    type: 'website',
+    url: 'https://stream18plus.my.id',
+    siteName: 'Stream18+',
+    title: 'Stream18+ - Nonton Video Terbaru 2026',
+    description: 'Stream18+ adalah situs streaming video viral, koleksi terbaru, dan video terupdate setiap hari.',
+    images: [{ url: '/images/kingstream-logo.png' }],
+  },
   icons: {
     icon: [
       { url: '/icon.png?v=3', type: 'image/png' },
