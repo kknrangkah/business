@@ -280,8 +280,8 @@ function WatchContent({ videoId }: { videoId: string }) {
                     <Eye className="w-3.5 h-3.5 text-purple-400" />
                     <span>{formatViews(currentVideo.views)} tayangan</span>
                   </span>
-                  <span>•</span>
-                  <span>Diupload {formatTimeAgo(currentVideo.createdAt)}</span>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="hidden sm:inline">Diupload {formatTimeAgo(currentVideo.createdAt)}</span>
                 </div>
               </div>
 

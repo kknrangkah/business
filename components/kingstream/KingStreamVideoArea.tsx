@@ -33,82 +33,6 @@ interface KingStreamVideoAreaProps {
   itemsPerPage: number;
 }
 
-// Fallback high quality recommendation catalogue if database has few videos
-const DEFAULT_RECOMMENDATIONS: KingStreamVideo[] = [
-  {
-    id: 'rec-1',
-    title: 'DJ Goyang Pargoy Viral Terbaru 2026 Full Bass Jedag Jedug',
-    category: 'Indo Viral',
-    duration: '14:20',
-    views: 420000,
-    thumbnailUrl:
-      'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&auto=format&fit=crop&q=80',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    badge: 'VIRAL',
-    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-  },
-  {
-    id: 'rec-2',
-    title: 'Koleksi Video Eksklusif Premium Trending Minggu Ini No Cut',
-    category: 'Eksklusif',
-    duration: '22:15',
-    views: 1250000,
-    thumbnailUrl:
-      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&auto=format&fit=crop&q=80',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    badge: 'VIP HD',
-    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
-  },
-  {
-    id: 'rec-3',
-    title: 'Momen Tak Terduga Live Streaming Paling Heboh Se-Indonesia',
-    category: 'Trending',
-    duration: '08:45',
-    views: 890000,
-    thumbnailUrl:
-      'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    badge: 'HOT',
-    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-  },
-  {
-    id: 'rec-4',
-    title: 'Top 10 Video Terpopuler Pilihan Netizen Rating Tertinggi',
-    category: 'Populer',
-    duration: '18:50',
-    views: 2450000,
-    thumbnailUrl:
-      'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    badge: 'TOP 1',
-    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-  },
-  {
-    id: 'rec-5',
-    title: 'Bocoran Konten Viral FYP TikTok Hari Ini Paling Banyak Dicari',
-    category: 'Indo Viral',
-    duration: '06:12',
-    views: 540000,
-    thumbnailUrl:
-      'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    badge: 'VIRAL',
-    createdAt: new Date(Date.now() - 3600000 * 72).toISOString(),
-  },
-  {
-    id: 'rec-6',
-    title: 'Behind the Scenes & Klip Eksklusif Khusus Member VIP',
-    category: 'Eksklusif',
-    duration: '25:40',
-    views: 780000,
-    thumbnailUrl:
-      'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=600&auto=format&fit=crop&q=80',
-    videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    badge: 'VIP',
-    createdAt: new Date(Date.now() - 3600000 * 96).toISOString(),
-  },
-];
-
 function formatSeconds(sec: number): string {
   if (isNaN(sec) || sec < 0) return '00:00';
   const m = Math.floor(sec / 60);
@@ -264,20 +188,9 @@ export function KingStreamVideoArea({
       });
     };
 
-    // Filter other uploaded videos and sort them by views & popularity
+    // Filter ONLY uploaded videos (excluding current video) and sort them by views & popularity
     const otherUploadedVideos = sortList(videos.filter((v) => v.id !== selectedVideo.id));
-
-    // Fill with default popular catalog if fewer than 4 uploaded videos exist
-    const fallbackSorted = sortList(
-      DEFAULT_RECOMMENDATIONS.filter(
-        (rec) =>
-          rec.id !== selectedVideo.id &&
-          !otherUploadedVideos.some((v) => v.title.toLowerCase() === rec.title.toLowerCase())
-      )
-    );
-
-    const combined = [...otherUploadedVideos, ...fallbackSorted];
-    return sortList(combined).slice(0, 4);
+    return otherUploadedVideos.slice(0, 8);
   };
 
   // If there are no videos in storage matching search / category
@@ -559,7 +472,7 @@ export function KingStreamVideoArea({
                 </span>
 
                 {/* Time Ago */}
-                <span className="flex items-center gap-1 text-slate-400">
+                <span className="hidden sm:flex items-center gap-1 text-slate-400">
                   <span>Diupload {formatTimeAgo(selectedVideo.createdAt)}</span>
                 </span>
               </div>
@@ -626,63 +539,75 @@ export function KingStreamVideoArea({
                 </div>
               </div>
 
-              {/* Recommendations Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {getRecommendations().map((rec, index) => (
-                  <div
-                    key={rec.id}
-                    onClick={(e) => handlePlayVideo(rec, e)}
-                    className="group bg-[#150B2A] border border-[#2b1848] hover:border-purple-600/60 rounded-xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-950/50 cursor-pointer flex flex-col"
-                  >
-                    {/* Thumbnail with duration & rank */}
-                    <div className="relative aspect-video w-full overflow-hidden bg-black/60">
-                      <VideoThumbnail
-                        video={rec}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                      />
+              {/* Recommendations Grid (Only Uploaded Videos) */}
+              {(() => {
+                const recommendations = getRecommendations();
+                if (recommendations.length === 0) {
+                  return (
+                    <div className="py-6 text-center text-xs text-slate-400 border border-dashed border-purple-900/40 rounded-xl">
+                      Belum ada rekomendasi video lainnya yang diupload.
+                    </div>
+                  );
+                }
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {recommendations.map((rec, index) => (
+                      <div
+                        key={rec.id}
+                        onClick={(e) => handlePlayVideo(rec, e)}
+                        className="group bg-[#150B2A] border border-[#2b1848] hover:border-purple-600/60 rounded-xl overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-950/50 cursor-pointer flex flex-col"
+                      >
+                        {/* Thumbnail with duration & rank */}
+                        <div className="relative aspect-video w-full overflow-hidden bg-black/60">
+                          <VideoThumbnail
+                            video={rec}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          />
 
-                      {/* Prominent Duration Badge */}
-                      <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-white text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                        <Clock className="w-2.5 h-2.5 text-purple-400" />
-                        <span>{rec.duration || '00:00'}</span>
-                      </div>
+                          {/* Prominent Duration Badge */}
+                          <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-white text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                            <Clock className="w-2.5 h-2.5 text-purple-400" />
+                            <span>{rec.duration || '00:00'}</span>
+                          </div>
 
-                      {/* Rank + Popularity Badge */}
-                      <div className="absolute top-1.5 left-1.5 bg-gradient-to-r from-red-600 to-amber-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase shadow flex items-center gap-1">
-                        <span>#{index + 1}</span>
-                        <span>{rec.badge || 'POPULER'}</span>
-                      </div>
+                          {/* Rank + Popularity Badge */}
+                          <div className="absolute top-1.5 left-1.5 bg-gradient-to-r from-red-600 to-amber-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase shadow flex items-center gap-1">
+                            <span>#{index + 1}</span>
+                            <span>{rec.badge || 'POPULER'}</span>
+                          </div>
 
-                      {/* Category Pill */}
-                      <div className="absolute top-1.5 right-1.5 bg-[#130A24]/90 text-purple-300 text-[8px] font-semibold px-1.5 py-0.5 rounded border border-purple-800/40">
-                        {rec.category}
-                      </div>
+                          {/* Category Pill */}
+                          <div className="absolute top-1.5 right-1.5 bg-[#130A24]/90 text-purple-300 text-[8px] font-semibold px-1.5 py-0.5 rounded border border-purple-800/40">
+                            {rec.category}
+                          </div>
 
-                      {/* Play hover overlay */}
-                      <div className="absolute inset-0 bg-purple-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-150">
-                        <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center shadow-md">
-                          <Play className="w-4 h-4 fill-current ml-0.5" />
+                          {/* Play hover overlay */}
+                          <div className="absolute inset-0 bg-purple-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-150">
+                            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center shadow-md">
+                              <Play className="w-4 h-4 fill-current ml-0.5" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Info */}
+                        <div className="p-2.5 flex-1 flex flex-col justify-between">
+                          <h5 className="text-[11px] font-semibold text-slate-100 line-clamp-2 group-hover:text-purple-300 transition-colors leading-tight">
+                            {rec.title}
+                          </h5>
+
+                          <div className="mt-2 flex items-center justify-between text-[10px]">
+                            <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+                              <Eye className="w-3 h-3" />
+                              <span>{formatViews(rec.views)}</span>
+                            </span>
+                            <span className="font-mono text-purple-300">{rec.duration}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Info */}
-                    <div className="p-2.5 flex-1 flex flex-col justify-between">
-                      <h5 className="text-[11px] font-semibold text-slate-100 line-clamp-2 group-hover:text-purple-300 transition-colors leading-tight">
-                        {rec.title}
-                      </h5>
-
-                      <div className="mt-2 flex items-center justify-between text-[10px]">
-                        <span className="flex items-center gap-1 text-emerald-400 font-semibold">
-                          <Eye className="w-3 h-3" />
-                          <span>{formatViews(rec.views)}</span>
-                        </span>
-                        <span className="font-mono text-purple-300">{rec.duration}</span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </div>
           </div>
         </div>

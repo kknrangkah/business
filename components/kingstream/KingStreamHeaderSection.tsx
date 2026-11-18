@@ -25,7 +25,7 @@ export function KingStreamHeaderSection({
             ? `Stream18+ - Video ${categoryTitle} 2026`
             : 'Stream18+ - Nonton Video Terbaru 2026'}
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+        <p className="hidden sm:block text-sm text-slate-400 mt-1">
           Stream18+ adalah situs streaming video viral, koleksi terbaru, dan video terupdate setiap hari
         </p>
       </div>
