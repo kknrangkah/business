@@ -23,11 +23,12 @@ export const metadata: Metadata = {
   description: 'Stream18+ adalah situs streaming video viral, koleksi terbaru, dan video terupdate setiap hari.',
   icons: {
     icon: [
-      { url: '/images/kingstream-logo.png', type: 'image/png' },
-      { url: '/icon.png', type: 'image/png' },
+      { url: '/icon.png?v=3', type: 'image/png' },
+      { url: '/favicon.ico?v=3', type: 'image/x-icon' },
+      { url: '/images/kingstream-logo.png?v=3', type: 'image/png' },
     ],
-    shortcut: ['/images/kingstream-logo.png'],
-    apple: ['/apple-icon.png'],
+    shortcut: ['/favicon.ico?v=3'],
+    apple: ['/apple-icon.png?v=3'],
   },
 };
 
@@ -39,7 +40,8 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${plusJakartaSans.variable} font-sans h-full antialiased dark`} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/images/kingstream-logo.png" type="image/png" sizes="any" />
+        <link rel="icon" href="/icon.png?v=3" type="image/png" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico?v=3" />
       </head>
       <body className="min-h-full flex flex-col bg-[#0D061A] text-slate-100 selection:bg-purple-600 selection:text-white" suppressHydrationWarning>
         <RMEProvider>
