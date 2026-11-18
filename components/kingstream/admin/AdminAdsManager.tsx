@@ -833,20 +833,32 @@ export function AdminAdsManager() {
         </div>
 
         {/* Save Global Button */}
-        <div className="flex items-center justify-between pt-3 border-t border-purple-900/30">
-          <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={formData.openInNewTab}
-              onChange={(e) => setFormData({ ...formData, openInNewTab: e.target.checked })}
-              className="rounded border-purple-800 bg-[#130A24] text-purple-600"
-            />
-            <span>Buka klik banner promo di tab baru</span>
-          </label>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-purple-900/30">
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={formData.openInNewTab}
+                onChange={(e) => setFormData({ ...formData, openInNewTab: e.target.checked })}
+                className="rounded border-purple-800 bg-[#130A24] text-purple-600"
+              />
+              <span>Buka klik banner promo di tab baru</span>
+            </label>
+
+            <label className="flex items-center gap-2 text-xs text-rose-300 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={formData.adblockPopupEnabled !== false}
+                onChange={(e) => setFormData({ ...formData, adblockPopupEnabled: e.target.checked })}
+                className="rounded border-rose-700 bg-[#130A24] text-rose-600"
+              />
+              <span>Tampilkan Pop-up Disable AdBlock</span>
+            </label>
+          </div>
 
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold transition shadow-lg shadow-emerald-950 flex items-center gap-2 cursor-pointer active:scale-95"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold transition shadow-lg shadow-emerald-950 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
           >
             <Check className="w-4 h-4" />
             <span>Simpan Semua Pengaturan Iklan</span>

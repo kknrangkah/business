@@ -42,6 +42,7 @@ export interface AdBannerConfig {
   directAdOnPlay: boolean;
   directAdMode: 'new_tab' | 'same_tab';
   rotationIntervalSeconds?: number;
+  adblockPopupEnabled?: boolean;
   adItems?: AdBannerItem[];
 }
 
@@ -65,6 +66,7 @@ export const DEFAULT_AD_CONFIG: AdBannerConfig = {
   directAdOnPlay: true,
   directAdMode: 'new_tab',
   rotationIntervalSeconds: 5,
+  adblockPopupEnabled: true,
   adItems: [
     {
       id: 'ad-default-1',

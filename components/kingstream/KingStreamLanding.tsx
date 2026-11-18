@@ -8,6 +8,7 @@ import { KingStreamHeaderSection } from './KingStreamHeaderSection';
 import { KingStreamVideoArea } from './KingStreamVideoArea';
 import { KingStreamFloatingButton } from './KingStreamFloatingButton';
 import { KingStreamFooter } from './KingStreamFooter';
+import { AdblockDetectorModal } from './AdblockDetectorModal';
 import { KingStreamProvider } from './KingStreamContext';
 
 function KingStreamContent() {
@@ -64,6 +65,9 @@ function KingStreamContent() {
 
       {/* 7. Footer */}
       <KingStreamFooter />
+
+      {/* 8. Anti-AdBlock Pop-Up */}
+      <AdblockDetectorModal />
     </div>
   );
 }

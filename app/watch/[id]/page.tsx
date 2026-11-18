@@ -21,6 +21,7 @@ import { KingStreamFooter } from '@/components/kingstream/KingStreamFooter';
 import { KingStreamFloatingButton } from '@/components/kingstream/KingStreamFloatingButton';
 import { KingStreamPromoBanner } from '@/components/kingstream/KingStreamPromoBanner';
 import { VideoThumbnail } from '@/components/kingstream/VideoThumbnail';
+import { AdblockDetectorModal } from '@/components/kingstream/AdblockDetectorModal';
 import { KingStreamProvider, useKingStream } from '@/components/kingstream/KingStreamContext';
 import {
   KingStreamVideo,
@@ -388,6 +389,9 @@ function WatchContent({ videoId }: { videoId: string }) {
 
       {/* Footer */}
       <KingStreamFooter />
+
+      {/* Anti-AdBlock Pop-Up */}
+      <AdblockDetectorModal />
     </div>
   );
 }
